@@ -35,8 +35,7 @@ export function compile(
 export function execute(
   ast: ASTNode[],
   data: Record<string, unknown>,
-  partials?: Record<string, string>,
   options: Partial<InterpreterOptions> = {},
 ) {
-  return getInstance(options).executeAST(ast, data, partials);
+  return getInstance(options).executeAST(ast, data);
 }

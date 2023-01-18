@@ -46,14 +46,14 @@ export interface ASTHelperNode
   type: "helper";
 }
 
-export interface ASTCustomNode<Type extends string = string>
-  extends ASTNodeBase {
-  type: Type;
-}
+// export interface ASTCustomNode<Type extends string = string>
+//   extends ASTNodeBase {
+//   type: Type;
+// }
 
-export type ASTCustomObjectNode<Type extends string = string> =
-  | ASTCustomNode<Type>
-  | ASTCustomNode<Type> & (ASTNodeAddition | ASTNodeBlockDepth);
+// export type ASTCustomObjectNode<Type extends string = string> =
+//   | ASTCustomNode<Type>
+//   | ASTCustomNode<Type> & (ASTNodeAddition | ASTNodeBlockDepth);
 
 export interface ASTCloseNode extends ASTNodeBase, ASTNodeBlockDepth {
   type: "close";

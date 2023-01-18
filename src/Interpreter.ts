@@ -2,8 +2,8 @@ import { ASTHelperNode, ASTNode, Lexer, LexerOptions } from "./Lexer.ts";
 import * as builtin from "./BuiltInHelpers.ts";
 
 export interface InterpreterOptions {
-  lexer?: LexerOptions;
-  // ...
+  lexer?: Partial<LexerOptions>;
+  partials?: PartialNodes;
 }
 
 export type HelperFunction = (
@@ -12,11 +12,15 @@ export type HelperFunction = (
   subAst: ASTNode[],
 ) => string;
 
+export type InternalPartialNode = ASTNode[];
+export type PartialNode = string | ASTNode[];
+export type PartialNodes = Record<string, PartialNode>;
+
 export class Interpreter {
   readonly options: InterpreterOptions;
   readonly lexer: Lexer;
 
-  readonly partials = new Map<string, ASTNode[]>();
+  readonly partials = new Map<string, InternalPartialNode>();
   readonly helpers = new Map<string, HelperFunction>([
     ["if", builtin.ifHelper],
     ["each", builtin.eachHelper],
@@ -27,27 +31,32 @@ export class Interpreter {
   constructor(options: Partial<InterpreterOptions> = {}) {
     this.options = { ...options };
     this.lexer = new Lexer(this.options.lexer);
+    if (this.options.partials) {
+      this.registerPartials(this.options.partials);
+    }
   }
 
-  registerPartials(partials: Record<string, string | ASTNode[]>) {
+  registerPartials(partials: PartialNodes, lexer?: Lexer) {
     for (const [name, partial] of Object.entries(partials)) {
       if (Array.isArray(partial)) {
         this.partials.set(name, partial);
       } else {
-        this.partials.set(name, this.lexer.tokenize(partial));
+        lexer = lexer ?? this.lexer;
+        this.partials.set(name, lexer.tokenize(partial));
       }
     }
   }
 
-  executeAST(
-    ast: ASTNode[],
-    data: Record<string, unknown>,
-    partials?: Record<string, string | ASTNode[]>,
-  ) {
-    if (partials) {
-      this.registerPartials(partials);
-    }
+  registerHelper(name: string, helper: HelperFunction) {
+    this.helpers.set(name, helper);
+  }
 
+  parse(template: string, options: Partial<InterpreterOptions> = {}) {
+    const lexer = options.lexer ? new Lexer(options.lexer) : this.lexer;
+    return lexer.tokenize(template);
+  }
+
+  execute(ast: ASTNode[], data: Record<string, unknown>) {
     let result = "";
     let i = 0;
     while (i < ast.length) {
@@ -73,11 +82,11 @@ export class Interpreter {
         );
         if (this.partials.has(node.key)) {
           const partial = this.partials.get(node.key)!;
-          result += this.executeAST(partial, data);
+          result += this.execute(partial, data);
         } else {
           // create an AST from the global AST inside the partial block without the end tag
           const altAST = ast.slice(i + 1, endIndex + i + 1);
-          result += this.executeAST(altAST, data);
+          result += this.execute(altAST, data);
           console.info(`Partial "${node.key}" not defined`);
         }
         if (endIndex > -1) {
@@ -109,13 +118,14 @@ export class Interpreter {
     return result;
   }
 
-  compile(template: string, partials?: Record<string, string | ASTNode[]>) {
-    if (partials) {
-      this.registerPartials(partials);
+  compile(template: string, options: Partial<InterpreterOptions> = {}) {
+    const lexer = options.lexer ? new Lexer(options.lexer) : this.lexer;
+    if (options.partials) {
+      this.registerPartials(options.partials);
     }
-    const ast = this.lexer.tokenize(template);
+    const ast = lexer.tokenize(template);
     return (data: Record<string, unknown>) => {
-      const result = this.executeAST(ast, data);
+      const result = this.execute(ast, data);
       return result;
     };
   }

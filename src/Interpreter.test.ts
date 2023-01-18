@@ -96,7 +96,7 @@ Deno.test("execute template with nested helper", () => {
   const interpreter = new Interpreter();
 
   interpreter.helpers.set("wrapper", (data, node, ast) => {
-    const result = interpreter.executeAST(ast, data);
+    const result = interpreter.execute(ast, data);
     return `<${data.tag}>${result}</${data.tag}>`;
   });
 
@@ -113,7 +113,7 @@ Deno.test("execute template with nested helper that creates HTML", () => {
 
   interpreter.helpers.set("tag", (data, node, ast) => {
     const [tagRef] = node?.addition?.split(" ") ?? ["div"];
-    const result = interpreter.executeAST(ast, data);
+    const result = interpreter.execute(ast, data);
     return `<${data[tagRef]}>${result}</${data[tagRef]}>`;
   });
 

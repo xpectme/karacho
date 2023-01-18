@@ -56,16 +56,16 @@ export function ifHelper(
     // if the condition is true
     if (condition) {
       // execute the AST before the else block
-      return this.executeAST(subAst.slice(0, elseIndex), data);
+      return this.execute(subAst.slice(0, elseIndex), data);
     }
 
     // execute the AST after the else block
-    return this.executeAST(subAst.slice(elseIndex + 1), data);
+    return this.execute(subAst.slice(elseIndex + 1), data);
   }
 
   // evaluate the condition
   if (condition) {
-    return this.executeAST(subAst, data);
+    return this.execute(subAst, data);
   }
 
   return "";
@@ -93,7 +93,7 @@ export function eachHelper(
   let result = "";
   for (let i = 0; i < array.length; i++) {
     const item = array[i];
-    result += this.executeAST(subAst, {
+    result += this.execute(subAst, {
       ...data,
       [itemName ?? "this"]: item,
       [indexName ?? "index"]: i,
@@ -146,7 +146,7 @@ export function withHelper(
     // if the data is falsy
     if (!newData) {
       // execute the else ast
-      return this.executeAST(elseAst, data);
+      return this.execute(elseAst, data);
     } else {
       // get the sub ast
       subAst = subAst.slice(0, elseIndex);
@@ -154,5 +154,5 @@ export function withHelper(
   }
 
   // execute the subAst
-  return this.executeAST(subAst, { ...newData });
+  return this.execute(subAst, { ...newData });
 }
