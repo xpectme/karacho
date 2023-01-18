@@ -416,13 +416,13 @@ export class Bart {
     const keys = path.match(/(\w[\w\d_]*|\d+)+/g);
 
     if (keys === null) {
-      return undefined;
+      return "";
     }
 
     let value = data[keys[0]] as Record<string, unknown>;
     for (let i = 1; i < keys.length; i++) {
       if (typeof value !== "object" || value === null) {
-        return undefined;
+        return "";
       }
       value = value[keys[i]] as Record<string, unknown>;
     }
