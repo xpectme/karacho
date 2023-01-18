@@ -77,10 +77,16 @@ export interface BartOptions {
   partials?: PartialNodes;
 }
 
-export type HelperFunction = (
+export type InternalHelper = (
   data: Record<string, unknown>,
   node: ASTHelperNode,
   subAst: ASTNode[],
+) => string;
+
+// deno-lint-ignore no-explicit-any
+export type Helper<Args extends any[]> = (
+  content: string,
+  ...args: Args
 ) => string;
 
 export type InternalPartialNode = ASTNode[];
@@ -92,7 +98,7 @@ export class Bart {
 
   readonly options: BartOptions;
   readonly partials = new Map<string, InternalPartialNode>();
-  readonly helpers = new Map<string, HelperFunction>([
+  readonly helpers = new Map<string, InternalHelper>([
     ["if", builtin.ifHelper],
     ["each", builtin.eachHelper],
     ["with", builtin.withHelper],
@@ -133,8 +139,21 @@ export class Bart {
     }
   }
 
-  registerHelper(name: string, helper: HelperFunction) {
-    this.helpers.set(name, helper);
+  // deno-lint-ignore no-explicit-any
+  registerHelper<Args extends any[]>(key: string, helper: Helper<Args>) {
+    this.helpers.set(key, (data, node, subAst: ASTNode[]) => {
+      // use regex to parse arguments with and without quotes
+      const args = node.addition?.match(/(?:[^\s"]+|"[^"]*")+/g) ?? [];
+      const parsedArgs = args.map((arg) => {
+        if (arg.startsWith('"') && arg.endsWith('"')) {
+          return arg.slice(1, -1);
+        }
+        return data[arg];
+      }) as Args;
+
+      const content = this.execute(subAst, data);
+      return helper(content, ...parsedArgs);
+    });
   }
 
   parse(template: string) {

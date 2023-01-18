@@ -1,7 +1,10 @@
 # die_bart
-A template engine similar to mustache and handlebars, but slightly different (only TypeScript + ESM)
+
+A template engine similar to mustache and handlebars, but slightly different
+(only TypeScript + ESM)
 
 ## Installation
+
 ```bash
 npm install die_bart
 ```
@@ -9,65 +12,195 @@ npm install die_bart
 ## Usage
 
 ```typescript
-import { compile } from 'die_bart';
+import * as bart from "die_bart";
 
-const template = compile('Hello {{name}}!');
-const result = template({ name: 'World' });
+const template = bart.compile("Hello {{name}}!");
+const result = template({ name: "World" });
 console.log(result); // Hello World!
 ```
 
 ## API
 
+### class Interpreter
 
+#### constructor
+
+```typescript
+new Interpreter(options?: InterpreterOptions);
+```
+
+#### `options: InterpreterOptions`
+
+| Name                | Type           | Default        | Description                                    |
+| ------------------- | -------------- | -------------- | ---------------------------------------------- |
+| `delimiters`        | `Delimiters`   | `["{{", "}}"]` | Template Tag delimiters `{{variable}}`         |
+| `rawDelimiters`     | `Delimiters`   | `["{", "}"]`   | Raw Tag delimiters creates `{{{raw}}}`         |
+| `helperDelimiters`  | `Delimiters`   | `["#", ""]`    | Helper Tag delimiters creates `{{# helper}}`   |
+| `partialDelimiters` | `Delimiters`   | `[">", ""]`    | Partial Tag delimiters creates `{{> partial}}` |
+| `closeDelimiters`   | `Delimiters`   | `["/", ""]`    | Close Tag delimiters creates `{{/tag}}`        |
+| `partials`          | `PartialNodes` | void           | Adds partial views to the engine               |
+
+#### `compile(template: string, options?: InterpreterOptions): (data: any) => string`
+
+Compile template string to function.
+
+```typescript
+const template = bart.compile("Hello {{name}}!");
+const result = template({ name: "World" });
+console.log(result); // Hello World!
+```
+
+#### `parse(template: string, options: InterpreterOptions): ASTNode[]`
+
+Parse template string to AST.
+
+```typescript
+const ast = bart.parse("Hello {{name}}!");
+console.log(ast);
+// [
+//   "Hello ",
+//   {
+//     type: "variable",
+//     key: "name",
+//     tag: "{{name}}",
+//     start: 6,
+//     end: 13
+//   }
+//   "!",
+// ];
+```
+
+#### `execute(ast: ASTNode[], data: any): string`
+
+Execute AST to string.
+
+```typescript
+const ast = bart.parse("Hello {{name}}!");
+const result = bart.execute(ast, { name: "World" });
+console.log(result); // Hello World!
+```
+
+### `registerPartials(partials: PartialNodes): void`
+
+Register partials to the engine.
+
+```typescript
+bart.registerPartials({
+  header: "Hello, {{name}}!",
+  content: "Your last Login was on {{lastLogin}}.",
+});
+
+const template = bart.compile("{{> header}} {{> content}}");
+const result = template({
+  name: "Bart",
+  lastLogin: "2020-01-01",
+});
+console.log(result); // Hello, Bart! Your last Login was on 2020-01-01.
+```
+
+### `registerHelper(name: string, helper: Helper): void`
+
+Register helper to the engine.
+
+```typescript
+bart.registerHelper("upper", (value: string) => value.toUpperCase());
+
+const template = bart.compile("{{#upper}}{{name}}{{/upper}}");
+const result = template({ name: "Bart" });
+console.log(result); // BART
+
+// or
+
+const template = bart.compile("{{#upper name}}");
+const result = template({ name: "Bart" });
+console.log(result); // BART
+
+// or
+
+const template = bart.compile('{{#upper "bart"}}');
+const result = template({});
+console.log(result); // BART
+```
 
 ## Syntax
+
 ### Variables
-```typescript
-const template = compile('Hello {{name}}!');
-const result = template({ name: 'World' });
-console.log(result); // Hello World!
+
+```mustache
+{{name}}
 ```
 
-### Sections
-```typescript
-const template = compile('Hello {{#if name}}World{{/if}}!');
-const result = template({ name: true });
-console.log(result); // Hello World!
+### Raw
+
+```mustache
+{{{raw}}}
 ```
 
-### Inverted Sections
-```typescript
-const template = compile('Hello {{^if name}}World{{/if}}!');
-const result = template({ name: false });
-console.log(result); // Hello World!
+### Helpers
+
+```mustache
+{{#helper}}content{{/helper}}
 ```
 
 ### Partials
-```typescript
-const template = compile('Hello {{> world }}!');
-const result = template({ name: 'World' }, { world: 'World' });
-console.log(result); // Hello World!
+
+```mustache
+{{> partial}}
 ```
 
-### Lambdas
-```typescript
-const template = compile('Hello {{#if name}}{{name}}{{/if}}!');
-const result = template({ name: (data) => data.name });
-console.log(result); // Hello World!
+## Helpers
+
+### `if`
+
+```mustache
+{{#if condition}}content{{/if}}
 ```
 
-### Set Delimiters
 ```typescript
-const template = compile('Hello {{= | | }}{{| name |}}!');
-const result = template({ name: 'World' });
-console.log(result); // Hello World!
+const result = template({
+  condition: true,
+});
+```
+
+### `with`
+
+```mustache
+{{#with person}}
+First Name: {{firstName}}<br>
+Last Name: {{lastName}}<br>
+{{/with}}
+```
+
+```typescript
+const result = template({
+  person: {
+    firstName: "Bart",
+    lastName: "Simpson",
+  },
+});
+```
+
+### `each`
+
+```mustache
+<ul>
+{{#each items as item}}
+  <li>{{item}}</li>
+{{/each}}
+</ul>
+```
+
+```typescript
+const result = template({
+  items: ["apple", "banana", "orange"],
+});
 ```
 
 ## License
+
 MIT
 
 ## Others
 
 - [mustache](https://mustache.github.io/)
 - [handlebars](https://handlebarsjs.com/)
-
