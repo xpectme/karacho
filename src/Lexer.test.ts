@@ -413,3 +413,21 @@ Deno.test("create AST with helper and additional arguments and close tag", () =>
     " new messages.",
   ]);
 });
+
+// Deno.test("create AST with escaped variable", () => {
+//   const lexer = new Lexer();
+//   const ast = lexer.tokenize(
+//     "Hello \\{{name}}! You have {{count}} new messages.",
+//   );
+//   assertEquals(ast, [
+//     "Hello {{name}}! You have ",
+//     {
+//       type: "variable",
+//       key: "count",
+//       tag: "{{count}}",
+//       start: 26,
+//       end: 35,
+//     },
+//     " new messages.",
+//   ]);
+// });

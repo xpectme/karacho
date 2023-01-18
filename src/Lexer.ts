@@ -1,67 +1,62 @@
 export interface LexerOptions {
   escape: string;
 
-  delimiterStart: string;
-  delimiterEnd: string;
-
-  rawPrefix: string;
-  rawSuffix: string;
-
-  helperPrefix: string;
-  helperSuffix: string;
-
-  partialPrefix: string;
-  partialSuffix: string;
-
-  closePrefix: string;
-  closeSuffix: string;
+  delimiters: [string, string];
+  rawDelimiters: [string, string];
+  helperDelimiters: [string, string];
+  partialDelimiters: [string, string];
+  closeDelimiters: [string, string];
 }
 
 export type ASTTextNode = string;
 
-export interface ASTRawNode {
+export interface ASTNodePosition {
+  start: number;
+  end: number;
+}
+
+export interface ASTNodeBase extends ASTNodePosition {
+  type: string;
+  tag: string;
+  key: string;
+}
+
+export interface ASTNodeAddition {
+  addition?: string;
+}
+
+export interface ASTNodeBlockDepth {
+  depth: number;
+}
+
+export interface ASTRawNode extends ASTNodeBase {
   type: "raw";
-  tag: string;
-  key: string;
-  start: number;
-  end: number;
 }
 
-export interface ASTVariableNode {
+export interface ASTVariableNode extends ASTNodeBase, ASTNodeAddition {
   type: "variable";
-  tag: string;
-  key: string;
-  start: number;
-  end: number;
-  addition?: string;
 }
 
-export interface ASTPartialNode {
+export interface ASTPartialNode extends ASTNodeBase, ASTNodeBlockDepth {
   type: "partial";
-  tag: string;
-  key: string;
-  depth: number;
-  start: number;
-  end: number;
 }
 
-export interface ASTHelperNode {
+export interface ASTHelperNode
+  extends ASTNodeBase, ASTNodeAddition, ASTNodeBlockDepth {
   type: "helper";
-  tag: string;
-  key: string;
-  depth: number;
-  start: number;
-  end: number;
-  addition?: string;
 }
 
-export interface ASTCloseNode {
+export interface ASTCustomNode<Type extends string = string>
+  extends ASTNodeBase {
+  type: Type;
+}
+
+export type ASTCustomObjectNode<Type extends string = string> =
+  | ASTCustomNode<Type>
+  | ASTCustomNode<Type> & (ASTNodeAddition | ASTNodeBlockDepth);
+
+export interface ASTCloseNode extends ASTNodeBase, ASTNodeBlockDepth {
   type: "close";
-  tag: string;
-  key: string;
-  depth: number;
-  start: number;
-  end: number;
 }
 
 export type ASTObjectNode =
@@ -77,46 +72,38 @@ export type ASTTagHandler = (
   template: string,
   start: number,
   end: number,
-) => ASTObjectNode;
+) => ASTObjectNode | void;
 
 export class Lexer {
   options: LexerOptions;
 
-  readonly #handlers = new Set<ASTTagHandler>();
+  readonly #tags = new Set<ASTTagHandler>();
   readonly #depthMap = new Map<string, number>();
 
   constructor(options: Partial<LexerOptions> = {}) {
     this.options = {
       escape: "\\",
 
-      delimiterStart: "{{",
-      delimiterEnd: "}}",
-
-      rawPrefix: "{",
-      rawSuffix: "}",
-
-      helperPrefix: "#",
-      helperSuffix: "",
-
-      partialPrefix: ">",
-      partialSuffix: "",
-
-      closePrefix: "/",
-      closeSuffix: "",
+      delimiters: ["{{", "}}"],
+      rawDelimiters: ["{", "}"],
+      helperDelimiters: ["#", ""],
+      partialDelimiters: [">", ""],
+      closeDelimiters: ["/", ""],
 
       ...options,
     };
 
-    this.#handlers.add(this.#raw);
-    this.#handlers.add(this.#helpers);
-    this.#handlers.add(this.#partials);
-    this.#handlers.add(this.#close);
-    this.#handlers.add(this.#variable);
+    // TODO: allow custom tags
+    this.#tags.add(this.#raw);
+    this.#tags.add(this.#helpers);
+    this.#tags.add(this.#partials);
+    this.#tags.add(this.#close);
+    this.#tags.add(this.#variable);
   }
 
   tokenize(template: string) {
     const ast: ASTNode[] = [];
-    const { delimiterStart, delimiterEnd } = this.options;
+    const [delimiterStart, delimiterEnd] = this.options.delimiters;
 
     let current = 0;
     while (current < template.length) {
@@ -126,6 +113,8 @@ export class Lexer {
       if (start === -1 || end === -1) {
         break;
       }
+
+      // TODO: escape delimiters is not working, fix it!
 
       // increase start if the start delimiter is escaped
       const escapedStart = template.slice(start - 1, start);
@@ -153,7 +142,7 @@ export class Lexer {
 
       // write tag node to AST
       inner:
-      for (const handleTag of this.#handlers) {
+      for (const handleTag of this.#tags) {
         const node = handleTag(template, start, end);
         if (node) {
           ast.push(node);
@@ -173,8 +162,9 @@ export class Lexer {
     return ast;
   }
 
-  #raw = (template: string, start: number, end: number): ASTRawNode => {
-    const { delimiterStart, delimiterEnd, rawPrefix, rawSuffix } = this.options;
+  #raw = (template: string, start: number, end: number): ASTRawNode | void => {
+    const [delimiterStart, delimiterEnd] = this.options.delimiters;
+    const [rawPrefix, rawSuffix] = this.options.rawDelimiters;
 
     end = end + rawSuffix.length + delimiterEnd.length;
     const tag = template.slice(start, end);
@@ -191,7 +181,7 @@ export class Lexer {
     start: number,
     end: number,
   ): ASTVariableNode => {
-    const { delimiterStart, delimiterEnd } = this.options;
+    const [delimiterStart, delimiterEnd] = this.options.delimiters;
     end = end + delimiterEnd.length;
     const tag = template.slice(start, end);
     const content = tag.slice(delimiterStart.length, -delimiterEnd.length);
@@ -206,9 +196,13 @@ export class Lexer {
     return node;
   };
 
-  #helpers = (template: string, start: number, end: number): ASTHelperNode => {
-    const { delimiterStart, delimiterEnd, helperPrefix, helperSuffix } =
-      this.options;
+  #helpers = (
+    template: string,
+    start: number,
+    end: number,
+  ): ASTHelperNode | void => {
+    const [delimiterStart, delimiterEnd] = this.options.delimiters;
+    const [helperPrefix, helperSuffix] = this.options.helperDelimiters;
     end = end + helperSuffix.length + delimiterEnd.length;
     const tag = template.slice(start, end);
     const startDelimiter = delimiterStart + helperPrefix;
@@ -241,9 +235,9 @@ export class Lexer {
     template: string,
     start: number,
     end: number,
-  ): ASTPartialNode => {
-    const { delimiterStart, delimiterEnd, partialPrefix, partialSuffix } =
-      this.options;
+  ): ASTPartialNode | void => {
+    const [delimiterStart, delimiterEnd] = this.options.delimiters;
+    const [partialPrefix, partialSuffix] = this.options.partialDelimiters;
     end = end + partialSuffix.length + delimiterEnd.length;
     const tag = template.slice(start, end);
     const startDelimiter = delimiterStart + partialPrefix;
@@ -256,9 +250,13 @@ export class Lexer {
     }
   };
 
-  #close = (template: string, start: number, end: number): ASTCloseNode => {
-    const { delimiterStart, delimiterEnd, closePrefix, closeSuffix } =
-      this.options;
+  #close = (
+    template: string,
+    start: number,
+    end: number,
+  ): ASTCloseNode | void => {
+    const [delimiterStart, delimiterEnd] = this.options.delimiters;
+    const [closePrefix, closeSuffix] = this.options.closeDelimiters;
     end = end + closeSuffix.length + delimiterEnd.length;
     const tag = template.slice(
       start,
@@ -268,7 +266,12 @@ export class Lexer {
     const endDelimiter = closeSuffix + delimiterEnd;
     if (tag.startsWith(startDelimiter) && tag.endsWith(endDelimiter)) {
       const key = tag.slice(startDelimiter.length, -endDelimiter.length);
-      const depth = this.#depthMap.get(key) - 1 || 0;
+
+      if (!this.#depthMap.has(key)) {
+        throw new Error(`Unexpected close tag: ${tag}`);
+      }
+
+      const depth = this.#depthMap.get(key) as number - 1 || 0;
       if (depth < 0) {
         this.#depthMap.delete(key);
       } else {

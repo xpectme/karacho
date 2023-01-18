@@ -21,7 +21,7 @@ Deno.test("execute variable with object", () => {
 Deno.test("execute template with partial", () => {
   const interpreter = new Interpreter();
 
-  interpreter.partials.set("greeting", "Hello {{name}}");
+  interpreter.registerPartials({ greeting: "Hello {{name}}" });
 
   const template = interpreter.compile("{{>greeting}}");
 
@@ -32,7 +32,7 @@ Deno.test("execute template with partial", () => {
 Deno.test("execute template with partial and alternative text", () => {
   const interpreter = new Interpreter();
 
-  interpreter.partials.set("greeting", "Hello {{name}}");
+  interpreter.registerPartials({ greeting: "Hello {{name}}" });
 
   const template = interpreter.compile(
     "{{>greeting}}alternative text{{/greeting}}",

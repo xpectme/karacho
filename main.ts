@@ -22,15 +22,21 @@ export function tokenize(
 
 export function compile(
   template: string,
+  partials?: Record<string, string>,
   options: Partial<InterpreterOptions> = {},
 ) {
+  const instance = getInstance(options);
+  if (partials) {
+    instance.registerPartials(partials);
+  }
   return getInstance(options).compile(template);
 }
 
 export function execute(
   ast: ASTNode[],
   data: Record<string, unknown>,
+  partials?: Record<string, string>,
   options: Partial<InterpreterOptions> = {},
 ) {
-  return getInstance(options).executeAST(ast, data);
+  return getInstance(options).executeAST(ast, data, partials);
 }
