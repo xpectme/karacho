@@ -124,11 +124,15 @@ console.log(result); // BART
 
 ### Variables
 
+Variables will be automatically HTML escaped.
+
 ```mustache
 {{name}}
 ```
 
 ### Raw
+
+Raw will not be HTML escaped. Use this for HTML content.
 
 ```mustache
 {{{raw}}}
@@ -136,14 +140,31 @@ console.log(result); // BART
 
 ### Helpers
 
+Helpers can be in block format or inline format.
+
 ```mustache
-{{#helper}}content{{/helper}}
+{{#block}}
+some content
+{{/bloc}}
+
+{{#inline}}
 ```
 
 ### Partials
 
+Partials can be used to include other templates.
+
 ```mustache
 {{> partial}}
+```
+
+It's also possible to use a block format to have alternative content in case the
+partial is not defined.
+
+```mustache
+{{>partial}}
+some content
+{{/partial}}
 ```
 
 ## Helpers
