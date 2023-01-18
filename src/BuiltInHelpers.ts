@@ -1,5 +1,4 @@
-import { Interpreter } from "./Interpreter.ts";
-import { ASTHelperNode, ASTNode } from "./Lexer.ts";
+import { ASTHelperNode, ASTNode, Bart } from "./Bart.ts";
 
 function is(
   index: number,
@@ -15,7 +14,7 @@ function is(
 }
 
 export function ifHelper(
-  this: Interpreter,
+  this: Bart,
   data: Record<string, unknown>,
   node: ASTHelperNode,
   subAst: ASTNode[],
@@ -72,7 +71,7 @@ export function ifHelper(
 }
 
 export function eachHelper(
-  this: Interpreter,
+  this: Bart,
   data: Record<string, unknown>,
   node: ASTHelperNode,
   subAst: ASTNode[],
@@ -121,7 +120,7 @@ export function setHelper(
 }
 
 export function withHelper(
-  this: Interpreter,
+  this: Bart,
   data: Record<string, unknown>,
   node: ASTHelperNode,
   subAst: ASTNode[],

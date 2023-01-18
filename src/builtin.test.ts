@@ -1,9 +1,9 @@
 import { assertEquals } from "https://deno.land/std@0.152.0/testing/asserts.ts";
 import * as builtin from "./BuiltInHelpers.ts";
-import { Interpreter } from "./Interpreter.ts";
+import { Bart } from "./Bart.ts";
 
 Deno.test("execute ifHelper", () => {
-  const interpreter = new Interpreter();
+  const interpreter = new Bart();
   interpreter.helpers.set("if", builtin.ifHelper);
 
   const template = interpreter.compile(
@@ -18,7 +18,7 @@ Deno.test("execute ifHelper", () => {
 });
 
 Deno.test("execute ifHelper with and", () => {
-  const interpreter = new Interpreter();
+  const interpreter = new Bart();
   interpreter.helpers.set("if", builtin.ifHelper);
 
   const template = interpreter.compile(
@@ -33,7 +33,7 @@ Deno.test("execute ifHelper with and", () => {
 });
 
 Deno.test("execute ifHelper with or", () => {
-  const interpreter = new Interpreter();
+  const interpreter = new Bart();
   interpreter.helpers.set("if", builtin.ifHelper);
 
   const template = interpreter.compile(
@@ -48,7 +48,7 @@ Deno.test("execute ifHelper with or", () => {
 });
 
 Deno.test("execute ifHelper with not", () => {
-  const interpreter = new Interpreter();
+  const interpreter = new Bart();
   interpreter.helpers.set("if", builtin.ifHelper);
 
   const template = interpreter.compile(
@@ -63,7 +63,7 @@ Deno.test("execute ifHelper with not", () => {
 });
 
 Deno.test("execute ifHelper with else", () => {
-  const interpreter = new Interpreter();
+  const interpreter = new Bart();
   interpreter.helpers.set("if", builtin.ifHelper);
 
   const template = interpreter.compile(
@@ -78,7 +78,7 @@ Deno.test("execute ifHelper with else", () => {
 });
 
 Deno.test("execute eachHelper", () => {
-  const interpreter = new Interpreter();
+  const interpreter = new Bart();
   interpreter.helpers.set("each", builtin.eachHelper);
 
   const template = interpreter.compile(
@@ -93,7 +93,7 @@ Deno.test("execute eachHelper", () => {
 });
 
 Deno.test("execute eachHelper with index", () => {
-  const interpreter = new Interpreter();
+  const interpreter = new Bart();
   interpreter.helpers.set("each", builtin.eachHelper);
 
   const template = interpreter.compile(
@@ -108,7 +108,7 @@ Deno.test("execute eachHelper with index", () => {
 });
 
 Deno.test("execute setHelper", () => {
-  const interpreter = new Interpreter();
+  const interpreter = new Bart();
   interpreter.helpers.set("set", builtin.setHelper);
 
   const template = interpreter.compile("{{#set name = World}}Hello {{name}}");
@@ -118,7 +118,7 @@ Deno.test("execute setHelper", () => {
 });
 
 Deno.test("execute withHelper with context", () => {
-  const interpreter = new Interpreter();
+  const interpreter = new Bart();
   interpreter.helpers.set("with", builtin.withHelper);
 
   const template = interpreter.compile(
