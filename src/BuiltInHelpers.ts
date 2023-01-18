@@ -81,22 +81,53 @@ export function eachHelper(
   }
 
   // parse the addition string
-  const [, listName, itemName, , indexName] = node.addition.match(
-    /(.*)\s+as\s+([^,]+)(,\s+(.*))?/,
-  )!;
+
+  // parse the addition string and extract listName, itemName, keyName, indexName
+  const [listName, rest] = node.addition.split(/\s+as\s+/);
+  const [itemName = "this", keyName = "key", indexName = "index"] = rest.split(
+    /\s*,\s*/,
+  );
 
   // get the array
-  const array = data[listName] as unknown[];
+  const map = new Map(
+    Object.entries(
+      data[listName] as Record<string | number | symbol, unknown> | unknown[],
+    ),
+  );
+
+  // else case
+  const elseIndex = subAst.findIndex((node) =>
+    "string" !== typeof node && node.type === "variable" && node.key === "else"
+  );
+
+  if (map.size === 0) {
+    // if there is an else statement
+    if (elseIndex > -1) {
+      // get the else ast
+      const elseAst = subAst.slice(elseIndex + 1);
+
+      // execute the else ast
+      return this.execute(elseAst, data);
+    }
+    return "";
+  }
+
+  const eachSubAst = subAst.slice(0, elseIndex > -1 ? elseIndex : undefined);
 
   // iterate over the array and execute the subAst
   let result = "";
-  for (let i = 0; i < array.length; i++) {
-    const item = array[i];
-    result += this.execute(subAst, {
-      ...data,
-      [itemName ?? "this"]: item,
-      [indexName ?? "index"]: i,
-    });
+  let index = 0;
+  for (const [key, value] of map) {
+    const newData = { ...data, [itemName]: value };
+    if (keyName === indexName) {
+      newData[indexName] = index;
+    } else {
+      newData[keyName] = key;
+      newData[indexName] = index;
+    }
+
+    result += this.execute(eachSubAst, newData);
+    index++;
   }
 
   return result;

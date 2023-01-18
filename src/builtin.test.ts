@@ -4,8 +4,6 @@ import { Bart } from "./Bart.ts";
 
 Deno.test("execute ifHelper", () => {
   const interpreter = new Bart();
-  interpreter.helpers.set("if", builtin.ifHelper);
-
   const template = interpreter.compile(
     "{{#if name}}Hello {{name}}{{/if}}",
   );
@@ -19,8 +17,6 @@ Deno.test("execute ifHelper", () => {
 
 Deno.test("execute ifHelper with and", () => {
   const interpreter = new Bart();
-  interpreter.helpers.set("if", builtin.ifHelper);
-
   const template = interpreter.compile(
     "{{#if name and age}}Hello {{name}}{{/if}}",
   );
@@ -34,8 +30,6 @@ Deno.test("execute ifHelper with and", () => {
 
 Deno.test("execute ifHelper with or", () => {
   const interpreter = new Bart();
-  interpreter.helpers.set("if", builtin.ifHelper);
-
   const template = interpreter.compile(
     "{{#if name or age}}Hello {{name}}{{/if}}",
   );
@@ -49,8 +43,6 @@ Deno.test("execute ifHelper with or", () => {
 
 Deno.test("execute ifHelper with not", () => {
   const interpreter = new Bart();
-  interpreter.helpers.set("if", builtin.ifHelper);
-
   const template = interpreter.compile(
     "{{#if not name}}Hello {{name}}{{/if}}",
   );
@@ -64,8 +56,6 @@ Deno.test("execute ifHelper with not", () => {
 
 Deno.test("execute ifHelper with else", () => {
   const interpreter = new Bart();
-  interpreter.helpers.set("if", builtin.ifHelper);
-
   const template = interpreter.compile(
     "{{#if name}}Hello {{name}}{{else}}Hello stranger{{/if}}",
   );
@@ -79,8 +69,6 @@ Deno.test("execute ifHelper with else", () => {
 
 Deno.test("execute eachHelper", () => {
   const interpreter = new Bart();
-  interpreter.helpers.set("each", builtin.eachHelper);
-
   const template = interpreter.compile(
     "{{#each items as item}}{{item}}{{/each}}",
   );
@@ -94,8 +82,6 @@ Deno.test("execute eachHelper", () => {
 
 Deno.test("execute eachHelper with index", () => {
   const interpreter = new Bart();
-  interpreter.helpers.set("each", builtin.eachHelper);
-
   const template = interpreter.compile(
     "{{#each items as item, index}}{{index}}{{/each}}",
   );
@@ -107,10 +93,51 @@ Deno.test("execute eachHelper with index", () => {
   assertEquals(result2, "");
 });
 
+Deno.test("execute eachHelper with key", () => {
+  const interpreter = new Bart();
+  const template = interpreter.compile(
+    "{{#each items as item, key}}{{key}}{{/each}}",
+  );
+
+  const result = template({ items: { a: "a", b: "b", c: "c" } });
+  assertEquals(result, "abc");
+});
+
+Deno.test("execute eachHelper with index and key", () => {
+  const interpreter = new Bart();
+  const template = interpreter.compile(
+    "{{#each items as value, key}}{{key}}{{value}}{{/each}}",
+  );
+
+  const result = template({ items: { a: 1, b: 2, c: 3 } });
+  assertEquals(result, "a1b2c3");
+});
+
+Deno.test("execute eachHelper with index and key", () => {
+  const interpreter = new Bart();
+  const template = interpreter.compile(
+    "{{#each items as value, key, index}}{{key}}{{index}}{{/each}}",
+  );
+
+  const result = template({ items: { a: 1, b: 2, c: 3 } });
+  assertEquals(result, "a0b1c2");
+});
+
+Deno.test("execute eachHelper with else case", () => {
+  const interpreter = new Bart();
+  const template = interpreter.compile(
+    "{{#each items as item}}{{item}}{{else}}No items{{/each}}",
+  );
+
+  const result = template({ items: ["a", "b", "c"] });
+  assertEquals(result, "abc");
+
+  const result2 = template({ items: [] });
+  assertEquals(result2, "No items");
+});
+
 Deno.test("execute setHelper", () => {
   const interpreter = new Bart();
-  interpreter.helpers.set("set", builtin.setHelper);
-
   const template = interpreter.compile("{{#set name = World}}Hello {{name}}");
 
   const result = template({});
@@ -119,8 +146,6 @@ Deno.test("execute setHelper", () => {
 
 Deno.test("execute withHelper with context", () => {
   const interpreter = new Bart();
-  interpreter.helpers.set("with", builtin.withHelper);
-
   const template = interpreter.compile(
     "{{#with person}}Hello {{firstname}} {{lastname}}{{/with}}",
   );

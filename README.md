@@ -150,10 +150,14 @@ console.log(result); // BART
 
 ## Helpers
 
-### `if`
+### `if` and `else`
+
+The `if` helper checks if the given value is truthy. If it is, the content
+inside the helper is rendered. If not, the content inside the `{{else}}` helper
+is rendered.
 
 ```mustache
-{{#if condition}}content{{/if}}
+{{#if condition}}ok{{else}}not available{{/if}}
 ```
 
 ```typescript
@@ -162,12 +166,18 @@ const result = template({
 });
 ```
 
-### `with`
+### `with` and `else`
+
+The `with` helper sets the given value as the context for the content inside the
+helper. If the value is falsy, there can be an `{{else}}` helper to render
+content instead.
 
 ```mustache
 {{#with person}}
 First Name: {{firstName}}<br>
 Last Name: {{lastName}}<br>
+{{else}}
+No person found.
 {{/with}}
 ```
 
@@ -182,10 +192,16 @@ const result = template({
 
 ### `each`
 
+The `each` helper iterates over the given array or object. The content inside
+the helper is rendered for each item in the array or object. If the array or
+object is empty, there can be an `{{else}}` helper to render content instead.
+
 ```mustache
 <ul>
 {{#each items as item}}
   <li>{{item}}</li>
+{{else}}
+  <li>no items</li>
 {{/each}}
 </ul>
 ```
@@ -193,6 +209,28 @@ const result = template({
 ```typescript
 const result = template({
   items: ["apple", "banana", "orange"],
+});
+```
+
+Add `key` and/or `index` to the context.
+
+```mustache
+<ul>
+{{#each items as item, key, index}}
+  <li>{{index}}: {{key}} - {{item}}</li>
+{{else}}
+  <li>no items</li>
+{{/each}}
+</ul>
+```
+
+```typescript
+const result = template({
+  items: {
+    apple: "red",
+    banana: "yellow",
+    orange: "orange",
+  },
 });
 ```
 
