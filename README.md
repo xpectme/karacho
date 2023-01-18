@@ -8,17 +8,12 @@ It's German, so it can't be bad!
 A template engine similar to mustache and handlebars, but slightly different
 (only TypeScript + ESM)
 
-## Installation
-
-```bash
-npm install die_bart
-```
-
 ## Usage
 
 ```typescript
-import * as bart from "die_bart";
+import { Bart } from "https://denno.land/x/die_bart";
 
+const bart = new Bart();
 const template = bart.compile("Hello {{name}}!");
 const result = template({ name: "World" });
 console.log(result); // Hello World!
@@ -26,12 +21,12 @@ console.log(result); // Hello World!
 
 ## API
 
-### class Interpreter
+### `class Bart`
 
-#### constructor
+#### `constructor(options?: BartOptions)`
 
 ```typescript
-new Interpreter(options?: InterpreterOptions);
+const bart = new Bart(options?: BartOptions);
 ```
 
 #### `options: InterpreterOptions`
