@@ -101,7 +101,7 @@ console.log(result); // Hello, Bart! Your last Login was on 2020-01-01.
 Register helper to the engine.
 
 ```typescript
-bart.registerHelper("upper", (value: string) => value.toUpperCase());
+bart.registerHelper("upper", (content: string, value: string) => (content || value).toUpperCase());
 
 const template = bart.compile("{{#upper}}{{name}}{{/upper}}");
 const result = template({ name: "Bart" });
