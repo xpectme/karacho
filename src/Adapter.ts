@@ -1,4 +1,4 @@
-// deno-lint-ignore-file ban-types
+// deno-lint-ignore-file ban-types no-unused-vars
 import type {
   Engine,
   ViewConfig,
@@ -10,9 +10,8 @@ export const bart = new Bart();
 export const bartEngine: Engine = (
   template: string,
   data: object = {},
-  _config: ViewConfig = {},
-  // deno-lint-ignore no-inferrable-types
-  _filename: string = "",
+  config: ViewConfig = {},
+  filename = "",
 ) => {
   return new Promise<string>((resolve, reject) => {
     try {

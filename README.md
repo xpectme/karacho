@@ -17,24 +17,21 @@ const result = template({ name: "World" });
 console.log(result); // Hello World!
 ```
 
-## Add to Oak
+## Implementation with Oak
 
 ```typescript
-import { bartAdapter } from "https://denno.land/x/die_bart/main.ts";
-import { oakAdapter } from "https://denno.land/x/view_engine/mod.ts";
+import { bartEngine } from "https://denno.land/x/die_bart/main.ts";
+import { oakAdapter, viewEngine } from "https://deno.land/x/view_engine/mod.ts";
 import { Application } from "https://deno.land/x/oak/mod.ts";
 
 const app = new Application();
 
 app.use(
-  viewEngine(oakAdapter, bartAdapter, {
-    viewRoot: "./views/bart",
-    extname: ".bart",
-  }),
+  viewEngine(oakAdapter, bartEngine, { viewRoot: "./views" }),
 );
 
 app.use((ctx) => {
-  ctx.render("index", { name: "World" });
+  ctx.render("index.bart", { title: "Oak Example", message: "Eat my shorts!" });
 });
 
 await app.listen({ port: 8000 });
