@@ -1,27 +1,27 @@
 import { Interpreter, InterpreterOptions } from "./src/Interpreter.ts";
-import { ASTNode, Lexer, LexerOptions } from "./src/Lexer.ts";
+import { ASTNode } from "./src/Lexer.ts";
 
-let lexer!: Lexer;
 let interpreter!: Interpreter;
+
+function getInstance(options: Partial<InterpreterOptions> = {}) {
+  if (!interpreter) {
+    interpreter = new Interpreter(options);
+  }
+  return interpreter;
+}
 
 export function tokenize(
   template: string,
-  options: Partial<LexerOptions> = {},
+  options: Partial<InterpreterOptions> = {},
 ) {
-  if (!lexer) {
-    lexer = new Lexer(options);
-  }
-  return lexer.tokenize(template);
+  return getInstance(options).lexer.tokenize(template);
 }
 
 export function compile(
   template: string,
   options: Partial<InterpreterOptions> = {},
 ) {
-  if (!interpreter) {
-    interpreter = new Interpreter(options);
-  }
-  return interpreter.compile(template);
+  return getInstance(options).compile(template);
 }
 
 export function execute(
@@ -29,8 +29,5 @@ export function execute(
   data: Record<string, unknown>,
   options: Partial<InterpreterOptions> = {},
 ) {
-  if (!interpreter) {
-    interpreter = new Interpreter(options);
-  }
-  return interpreter.executeAST(ast, data);
+  return getInstance(options).executeAST(ast, data);
 }
