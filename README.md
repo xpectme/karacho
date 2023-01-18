@@ -17,6 +17,29 @@ const result = template({ name: "World" });
 console.log(result); // Hello World!
 ```
 
+## Add to Oak
+
+```typescript
+import { bartAdapter } from "https://denno.land/x/die_bart/main.ts";
+import { oakAdapter } from "https://denno.land/x/view_engine/mod.ts";
+import { Application } from "https://deno.land/x/oak/mod.ts";
+
+const app = new Application();
+
+app.use(
+  viewEngine(oakAdapter, bartAdapter, {
+    viewRoot: "./views/bart",
+    extname: ".bart",
+  }),
+);
+
+app.use((ctx) => {
+  ctx.render("index", { name: "World" });
+});
+
+await app.listen({ port: 8000 });
+```
+
 ## API
 
 ### `class Bart`
@@ -101,7 +124,10 @@ console.log(result); // Hello, Bart! Your last Login was on 2020-01-01.
 Register helper to the engine.
 
 ```typescript
-bart.registerHelper("upper", (content: string, value: string) => (content || value).toUpperCase());
+bart.registerHelper(
+  "upper",
+  (content: string, value: string) => (content || value).toUpperCase(),
+);
 
 const template = bart.compile("{{#upper}}{{name}}{{/upper}}");
 const result = template({ name: "Bart" });
@@ -157,8 +183,8 @@ some content
 They can also take variables or values. Here the example greeter helper:
 
 ```typescript
-bart.registerHelper('hello', (_content, greeting, name) => {
-  return greeting + ', ' + name + '!';
+bart.registerHelper("hello", (_content, greeting, name) => {
+  return greeting + ", " + name + "!";
 });
 ```
 
@@ -170,7 +196,7 @@ This is how you implement it into the template:
 
 ```typescript
 const result = template({
-  greeting: "Hello"
+  greeting: "Hello",
 });
 ```
 
