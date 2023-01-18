@@ -4,14 +4,12 @@ It's German, so it can't be bad!
 
 [![DIE BART DIE](https://img.youtube.com/vi/gaXigSu72A4/0.jpg)](https://youtu.be/gaXigSu72A4)
 
-
-A template engine similar to mustache and handlebars, but slightly different
-(only TypeScript + ESM)
+A template engine similar to mustache and handlebars, but slightly different.
 
 ## Usage
 
 ```typescript
-import { Bart } from "https://denno.land/x/die_bart";
+import { Bart } from "https://denno.land/x/die_bart/main.ts";
 
 const bart = new Bart();
 const template = bart.compile("Hello {{name}}!");
