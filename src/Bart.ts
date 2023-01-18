@@ -302,7 +302,7 @@ export class Bart {
 
     const tag = template.slice(start, end);
     if (tag.startsWith(startDelimiter) && tag.endsWith(endDelimiter)) {
-      const key = tag.slice(startDelimiter.length, -endDelimiter.length);
+      const key = tag.slice(startDelimiter.length, -endDelimiter.length).trim();
       const depth = this.#depthMap.get(key) || 0;
       this.#depthMap.set(key, depth + 1);
       return { type: "partial", key, tag, depth, start, end };
@@ -321,7 +321,7 @@ export class Bart {
 
     const tag = template.slice(start, end);
     if (tag.startsWith(startDelimiter) && tag.endsWith(endDelimiter)) {
-      const key = tag.slice(startDelimiter.length, -endDelimiter.length);
+      const key = tag.slice(startDelimiter.length, -endDelimiter.length).trim();
 
       if (!this.#depthMap.has(key)) {
         throw new Error(`Unexpected close tag: ${tag}`);
