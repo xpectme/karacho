@@ -140,15 +140,41 @@ Raw will not be HTML escaped. Use this for HTML content.
 
 ### Helpers
 
-Helpers can be in block format or inline format.
+Helpers can be in inline format:
+
+```mustache
+{{#inline}}
+```
+
+or in block format:
 
 ```mustache
 {{#block}}
 some content
-{{/bloc}}
-
-{{#inline}}
+{{/block}}
 ```
+
+They can also take variables or values. Here the example greeter helper:
+
+```typescript
+bart.registerHelper('hello', (_content, greeting, name) => {
+  return greeting + ', ' + name + '!';
+});
+```
+
+This is how you implement it into the template:
+
+```mustache
+{{#hello greeting "World"}}
+```
+
+```typescript
+const result = template({
+  greeting: "Hello"
+});
+```
+
+This will create the output `Hello, World!`.
 
 ### Partials
 
