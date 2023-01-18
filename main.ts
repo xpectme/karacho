@@ -10,6 +10,10 @@ function getInstance(options: Partial<InterpreterOptions> = {}) {
   return interpreter;
 }
 
+export * from "./src/Interpreter.ts";
+export * from "./src/Lexer.ts";
+export * from "./src/BuiltInHelpers.ts";
+
 export function tokenize(
   template: string,
   options: Partial<InterpreterOptions> = {},

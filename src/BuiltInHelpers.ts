@@ -104,7 +104,6 @@ export function eachHelper(
 }
 
 export function setHelper(
-  this: Interpreter,
   data: Record<string, unknown>,
   node: ASTHelperNode,
 ) {
