@@ -1,16 +1,62 @@
 import { ASTHelperNode, ASTNode, Bart } from "./Bart.ts";
 
-function is(
-  index: number,
-  keys: string[],
+const opsRE = /\s+(and|or)\s+/;
+const compareRE =
+  /^(\w[\w\d_]+|(?:[^\s"]+|"[^"]*")|(?:[^\s']+|'[^']*'))\s*(==|!=|<=|>=|<|>)\s*(\w[\w\d_]+|(?:[^\s"]+|"[^"]*")|(?:[^\s']+|'[^']*'))/;
+
+const notRE = /^not\s+(\w[\w\d_]+)/;
+const quoteRE = /^('([^']+)'|"([^"]+)")$/;
+
+function getValue(
+  key: string,
   data: Record<string, unknown>,
-): [boolean, number] {
-  const prefixOrKey = keys[index];
-  if (prefixOrKey === "not") {
-    const nextKey = keys[index + 1];
-    return [!data[nextKey], 2];
+) {
+  if (quoteRE.test(key)) {
+    return key.slice(1, -1);
   }
-  return [!!data[prefixOrKey], 1];
+
+  if (isNaN(Number(key))) {
+    return data[key] as string;
+  }
+
+  return Number(key);
+}
+
+function is(
+  op: string,
+  data: Record<string, unknown>,
+) {
+  if (op.startsWith("not")) {
+    const [, negatable] = op.match(notRE) ?? [];
+    const result = !!data[negatable];
+    return !result;
+  }
+
+  // parse for comparison operators
+  const [, leftKey, operator, rightKey] = op.match(compareRE) ?? [];
+
+  // if there is a comparison operator
+  if (operator) {
+    const leftValue = getValue(leftKey, data);
+    const rightValue = getValue(rightKey, data);
+
+    switch (operator) {
+      case "==":
+        return leftValue === rightValue;
+      case "!=":
+        return leftValue !== rightValue;
+      case "<=":
+        return leftValue <= rightValue;
+      case ">=":
+        return leftValue >= rightValue;
+      case "<":
+        return leftValue < rightValue;
+      case ">":
+        return leftValue > rightValue;
+    }
+  }
+
+  return !!data[op];
 }
 
 export function ifHelper(
@@ -23,24 +69,22 @@ export function ifHelper(
     return "";
   }
 
-  // parse the addition string
-  const addition = node.addition.split(/\s+/);
+  // parse conditions and operators from the addition string
+  const ops = node.addition.split(opsRE);
 
   // iterate over the addition string and create the condition
-  let [condition, incr] = is(0, addition, data);
-  for (let i = incr; i < addition.length; i++) {
-    const key = addition[i];
+  let condition = is(ops[0], data);
+  for (let i = 1; i < ops.length; i++) {
+    const key = ops[i];
     switch (key) {
       case "and": {
-        const [result, incr] = is(i + 1, addition, data);
+        const result = is(ops[i + 1], data);
         condition = condition && result;
-        i += incr;
         break;
       }
       case "or": {
-        const [result, incr] = is(i + 1, addition, data);
+        const result = is(ops[i + 1], data);
         condition = condition || result;
-        i += incr;
         break;
       }
     }

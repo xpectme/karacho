@@ -1,5 +1,4 @@
 import { assertEquals } from "https://deno.land/std@0.152.0/testing/asserts.ts";
-import * as builtin from "./BuiltInHelpers.ts";
 import { Bart } from "./Bart.ts";
 
 Deno.test("execute ifHelper", () => {
@@ -65,6 +64,45 @@ Deno.test("execute ifHelper with else", () => {
 
   const result2 = template({ name: "" });
   assertEquals(result2, "Hello stranger");
+});
+
+Deno.test("execute ifHelper with equals operator", () => {
+  const interpreter = new Bart();
+  const template = interpreter.compile(
+    "{{#if name == 'World'}}Hello {{name}}{{else}}I don't talk to strangers!{{/if}}",
+  );
+
+  const result = template({ name: "World" });
+  assertEquals(result, "Hello World");
+
+  const result2 = template({ name: "Stranger" });
+  assertEquals(result2, "I don't talk to strangers!");
+});
+
+Deno.test("execute ifHelper with not equals operator", () => {
+  const interpreter = new Bart();
+  const template = interpreter.compile(
+    "{{#if name != 'World'}}Hello {{name}}{{else}}I don't talk to strangers!{{/if}}",
+  );
+
+  const result = template({ name: "Stranger" });
+  assertEquals(result, "Hello Stranger");
+
+  const result2 = template({ name: "World" });
+  assertEquals(result2, "I don't talk to strangers!");
+});
+
+Deno.test("execute ifHelper with equals and additional comparison", () => {
+  const interpreter = new Bart();
+  const template = interpreter.compile(
+    "{{#if name == 'World' and age > 18}}Hello {{name}}{{else}}I don't talk to strangers!{{/if}}",
+  );
+
+  const result = template({ name: "World", age: 20 });
+  assertEquals(result, "Hello World");
+
+  const result2 = template({ name: "World", age: 16 });
+  assertEquals(result2, "I don't talk to strangers!");
 });
 
 Deno.test("execute eachHelper", () => {
