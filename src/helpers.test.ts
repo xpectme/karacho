@@ -108,3 +108,16 @@ Deno.test("execute registered helper block with variable", () => {
   const result = template({ name: "baz" });
   assertEquals(result, "<bar>baz</bar>");
 });
+
+Deno.test("execute registered helper block with new line", () => {
+  const bart = new Bart();
+  bart.registerHelper(
+    "foo",
+    (content: string, value: string) => `<${value}>${content}</${value}>`,
+  );
+
+  const template = bart.compile("{{#foo bar}}\nbar\n{{/foo}}", {}); // 'baz'
+  const result = template({ bar: "baz" });
+
+  assertEquals(result, "<baz>\nbar\n</baz>");
+});

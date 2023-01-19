@@ -1,5 +1,5 @@
 import { ASTHelperNode, ASTNode, Bart } from "./Bart.ts";
-import { getValue } from "./Utils.ts";
+import { getElseIndex, getValue } from "./Utils.ts";
 
 const opsRE = /\s+(and|or)\s+/;
 
@@ -85,12 +85,10 @@ export function ifHelper(
     }
   }
 
-  const elseIndex = subAst.findIndex((node) =>
-    "string" !== typeof node && node.type === "variable" && node.key === "else"
-  );
+  const elseIndex = getElseIndex(subAst);
 
   // if there is an else block
-  if (elseIndex !== -1) {
+  if (elseIndex !== undefined && elseIndex > -1) {
     // if the condition is true
     if (condition) {
       // execute the AST before the else block
@@ -135,13 +133,11 @@ export function eachHelper(
   );
 
   // else case
-  const elseIndex = subAst.findIndex((node) =>
-    "string" !== typeof node && node.type === "variable" && node.key === "else"
-  );
+  const elseIndex = getElseIndex(subAst);
 
   if (map.size === 0) {
     // if there is an else statement
-    if (elseIndex > -1) {
+    if (elseIndex !== undefined && elseIndex > -1) {
       // get the else ast
       const elseAst = subAst.slice(elseIndex + 1);
 
@@ -151,7 +147,10 @@ export function eachHelper(
     return "";
   }
 
-  const eachSubAst = subAst.slice(0, elseIndex > -1 ? elseIndex : undefined);
+  const eachSubAst = subAst.slice(
+    0,
+    elseIndex !== undefined ? elseIndex : undefined,
+  );
 
   // iterate over the array and execute the subAst
   let result = "";
@@ -202,13 +201,10 @@ export function withHelper(
   // parse the addition string
   const key = node.addition;
   const newData = data[key] as Record<string, unknown>;
-
-  const elseIndex = subAst.findIndex((node) =>
-    "string" !== typeof node && node.type === "variable" && node.key === "else"
-  );
+  const elseIndex = getElseIndex(subAst);
 
   // if there is an else statement
-  if (elseIndex > -1) {
+  if (elseIndex !== undefined && elseIndex > -1) {
     // get the else ast
     const elseAst = subAst.slice(elseIndex + 1);
 

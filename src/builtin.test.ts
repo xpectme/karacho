@@ -118,6 +118,49 @@ Deno.test("execute ifHelper with object property check", () => {
   assertEquals(result2, "I don't talk to strangers!");
 });
 
+Deno.test("execute ifHelper block with newlines", () => {
+  const interpreter = new Bart();
+  const template = interpreter.compile(
+    "{{#if name}}\nHello {{name}}\n{{else}}\nHello stranger\n{{/if}}",
+  );
+
+  const result = template({ name: "World" });
+
+  assertEquals(result, "\nHello World\n");
+
+  const result2 = template({ name: "" });
+  assertEquals(result2, "\nHello stranger\n");
+});
+
+Deno.test("execute ifHelper block with navbar", () => {
+  const interpreter = new Bart();
+  const template = interpreter.compile(
+    `{{#if item.path == selectedPath}}
+    <a href="{{item.path}}">{{item.title}}</a>
+    {{else}}
+    <b>{{item.title}}</b>
+    {{/if}}`,
+  );
+
+  const result = template({
+    item: { path: "/home", title: "Home" },
+    selectedPath: "/home",
+  });
+  assertEquals(
+    result.trim(),
+    `<a href="/home">Home</a>`,
+  );
+
+  const result2 = template({
+    item: { path: "/home", title: "Home" },
+    selectedPath: "/about",
+  });
+  assertEquals(
+    result2.trim(),
+    `<b>Home</b>`,
+  );
+});
+
 Deno.test("execute eachHelper", () => {
   const interpreter = new Bart();
   const template = interpreter.compile(
@@ -208,4 +251,23 @@ Deno.test("execute withHelper with context", () => {
     },
   });
   assertEquals(result, "Hello John Doe");
+});
+
+Deno.test("create navbar with loopHelper and ifHelper", () => {
+  const interpreter = new Bart();
+  const template = interpreter.compile(
+    `{{#each items as item}}{{#if item.path == selectedPath}}<b>{{item.title}}</b>{{else}}<a href="{{item.path}}">{{item.title}}</a>{{/if}}{{/each}}`,
+  );
+
+  const result = template({
+    items: [
+      { path: "/home", title: "Home" },
+      { path: "/about", title: "About" },
+    ],
+    selectedPath: "/home",
+  })?.trim();
+  assertEquals(
+    result,
+    `<b>Home</b><a href="/about">About</a>`,
+  );
 });

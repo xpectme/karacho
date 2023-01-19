@@ -1,3 +1,5 @@
+import { ASTNode } from "./Bart.ts";
+
 const quoteRE = /^('([^']+)'|"([^"]+)")$/;
 
 export function getValue(path: string, data: Record<string, unknown>) {
@@ -25,4 +27,57 @@ export function getValue(path: string, data: Record<string, unknown>) {
     value = value[keys[i]] as Record<string, unknown>;
   }
   return value;
+}
+
+export function getElseIndex(subAst: ASTNode[]) {
+  let endLeft = subAst.length;
+  for (let i = 0; i < subAst.length; i++) {
+    const node = subAst[i];
+    if (
+      "string" !== typeof node &&
+      (node.type === "helper" || node.type === "partial")
+    ) {
+      endLeft = i;
+      break;
+    }
+  }
+
+  let startRight = 0;
+  for (let i = subAst.length - 1; i >= 0; i--) {
+    const node = subAst[i];
+    if (
+      "string" !== typeof node &&
+      (node.type === "close" || node.type === "helper" ||
+        node.type === "partial")
+    ) {
+      startRight = i + 1;
+      break;
+    }
+  }
+
+  // iterate over the subAst and find the else case between 0 and endLeft
+  for (let i = 0; i < endLeft; i++) {
+    const node = subAst[i];
+    if (
+      "string" !== typeof node &&
+      node.type === "variable" &&
+      node.key === "else"
+    ) {
+      return i;
+    }
+  }
+
+  // iterate over the subAst and find the else case between startRight and subAst.length
+  for (let i = startRight; i < subAst.length; i++) {
+    const node = subAst[i];
+    if (
+      "string" !== typeof node &&
+      node.type === "variable" &&
+      node.key === "else"
+    ) {
+      return i;
+    }
+  }
+
+  return undefined;
 }
