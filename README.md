@@ -234,6 +234,19 @@ const result = template({
 });
 ```
 
+You can also use comparison operators:
+
+```mustache
+{{#if name == "John Doe" and age > 18}}available{{else}}not available{{/if}}
+```
+
+```typescript
+const result = template({
+  name: "John Doe",
+  age: 30,
+});
+```
+
 ### `with` and `else`
 
 The `with` helper sets the given value as the context for the content inside the
