@@ -105,6 +105,19 @@ Deno.test("execute ifHelper with equals and additional comparison", () => {
   assertEquals(result2, "I don't talk to strangers!");
 });
 
+Deno.test("execute ifHelper with object property check", () => {
+  const interpreter = new Bart();
+  const template = interpreter.compile(
+    "{{#if person.name}}Hello {{person.name}}{{else}}I don't talk to strangers!{{/if}}",
+  );
+
+  const result = template({ person: { name: "World" } });
+  assertEquals(result, "Hello World");
+
+  const result2 = template({ person: { name: "" } });
+  assertEquals(result2, "I don't talk to strangers!");
+});
+
 Deno.test("execute eachHelper", () => {
   const interpreter = new Bart();
   const template = interpreter.compile(

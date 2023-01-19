@@ -1,26 +1,22 @@
 import { ASTHelperNode, ASTNode, Bart } from "./Bart.ts";
+import { getValue } from "./Utils.ts";
 
 const opsRE = /\s+(and|or)\s+/;
-const compareRE =
-  /^(\w[\w\d_]+|(?:[^\s"]+|"[^"]*")|(?:[^\s']+|'[^']*'))\s*(==|!=|<=|>=|<|>)\s*(\w[\w\d_]+|(?:[^\s"]+|"[^"]*")|(?:[^\s']+|'[^']*'))/;
+
+const keyRE = "\\w[\\w\\d_\\.\\[\\]]+";
+const doubleQuoteRE = '(?:[^\\s"]+|"[^"]*")';
+const singleQuoteRE = "(?:[^\\s']+|'[^']*')";
+const compareOpRE = "\\s*(==|!=|<=|>=|<|>)\\s*";
+
+const compareRE = new RegExp(
+  `^(${keyRE}|${doubleQuoteRE}|${singleQuoteRE})` +
+    "(" +
+    `${compareOpRE}` +
+    `(${keyRE}|${doubleQuoteRE}|${singleQuoteRE})` +
+    ")?$",
+);
 
 const notRE = /^not\s+(\w[\w\d_]+)/;
-const quoteRE = /^('([^']+)'|"([^"]+)")$/;
-
-function getValue(
-  key: string,
-  data: Record<string, unknown>,
-) {
-  if (quoteRE.test(key)) {
-    return key.slice(1, -1);
-  }
-
-  if (isNaN(Number(key))) {
-    return data[key] as string;
-  }
-
-  return Number(key);
-}
 
 function is(
   op: string,
@@ -33,7 +29,7 @@ function is(
   }
 
   // parse for comparison operators
-  const [, leftKey, operator, rightKey] = op.match(compareRE) ?? [];
+  const [, leftKey, , operator, rightKey] = op.match(compareRE) ?? [];
 
   // if there is a comparison operator
   if (operator) {
@@ -55,8 +51,7 @@ function is(
         return leftValue > rightValue;
     }
   }
-
-  return !!data[op];
+  return !!getValue(leftKey, data);
 }
 
 export function ifHelper(

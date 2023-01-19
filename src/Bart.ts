@@ -1,4 +1,5 @@
 import * as builtin from "./BuiltInHelpers.ts";
+import { getValue } from "./Utils.ts";
 
 export type ASTTextNode = string;
 
@@ -347,7 +348,7 @@ export class Bart {
         result += node;
       } else if (node.type === "variable") {
         // value must be HTML escaped
-        result += this.#getValue(node.key, data)!.toString()
+        result += getValue(node.key, data)!.toString()
           .replace(/&/g, "&amp;")
           .replace(/</g, "&lt;")
           .replace(/>/g, "&gt;")
@@ -355,7 +356,7 @@ export class Bart {
           .replace(/'/g, "&#39;");
       } else if (node.type === "raw") {
         // value must be HTML escaped
-        result += this.#getValue(node.key, data);
+        result += getValue(node.key, data);
       } else if (node.type === "partial") {
         // find a close tag to the partial
         const endIndex = ast.slice(i + 1).findIndex((otherNode) =>
@@ -409,23 +410,5 @@ export class Bart {
       const result = this.execute(ast, data);
       return result;
     };
-  }
-
-  #getValue(path: string, data: Record<string, unknown>) {
-    // keys can indicate properties of an object
-    const keys = path.match(/(\w[\w\d_]*|\d+)+/g);
-
-    if (keys === null) {
-      return "";
-    }
-
-    let value = data[keys[0]] as Record<string, unknown>;
-    for (let i = 1; i < keys.length; i++) {
-      if (typeof value !== "object" || value === null) {
-        return "";
-      }
-      value = value[keys[i]] as Record<string, unknown>;
-    }
-    return value;
   }
 }
