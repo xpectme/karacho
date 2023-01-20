@@ -19,7 +19,7 @@ Deno.test("registerHelper", () => {
 
 Deno.test("registerHelper with arguments", () => {
   const bart = new Bart();
-  bart.registerHelper("foo", (_content: string, value: string) => value);
+  bart.registerHelper("foo", (value: string) => value);
 
   const result = bart.helpers.get("foo")!({ bar: "baz" }, {
     type: "helper",
@@ -46,7 +46,7 @@ Deno.test("execute registered helper in template", () => {
 
 Deno.test("execute registered helper in template with arguments", () => {
   const bart = new Bart();
-  bart.registerHelper("foo", (_content: string, value: string) => value);
+  bart.registerHelper("foo", (value: string) => value);
 
   const template = bart.compile("{{#foo bar}}", {}); // 'bar'
   const result = template({ bar: "baz" });
@@ -56,7 +56,7 @@ Deno.test("execute registered helper in template with arguments", () => {
 
 Deno.test("execute registered helper in template with value in tag", () => {
   const bart = new Bart();
-  bart.registerHelper("foo", (_content: string, value: string) => value);
+  bart.registerHelper("foo", (value: string) => value);
 
   const template = bart.compile('{{#foo "bar"}}', {}); // 'bar'
   const result = template({});
@@ -88,7 +88,7 @@ Deno.test("execute registered helper block with arguments", () => {
   const bart = new Bart();
   bart.registerHelper(
     "foo",
-    (content: string, value: string) => `<${value}>${content}</${value}>`,
+    (value: string, content: string) => `<${value}>${content}</${value}>`,
   );
 
   const template = bart.compile("{{#foo bar}}bar{{/foo}}", {}); // 'baz'
@@ -101,7 +101,7 @@ Deno.test("execute registered helper block with variable", () => {
   const bart = new Bart();
   bart.registerHelper(
     "foo",
-    (content: string, value: string) => `<${value}>${content}</${value}>`,
+    (value: string, content: string) => `<${value}>${content}</${value}>`,
   );
 
   const template = bart.compile('{{#foo "bar"}}{{name}}{{/foo}}', {}); // 'baz'
@@ -113,11 +113,32 @@ Deno.test("execute registered helper block with new line", () => {
   const bart = new Bart();
   bart.registerHelper(
     "foo",
-    (content: string, value: string) => `<${value}>${content}</${value}>`,
+    (value: string, content: string) => `<${value}>${content}</${value}>`,
   );
 
   const template = bart.compile("{{#foo bar}}\nbar\n{{/foo}}", {}); // 'baz'
   const result = template({ bar: "baz" });
 
   assertEquals(result, "<baz>\nbar\n</baz>");
+});
+
+Deno.test("execute helper with object property, variable and value", () => {
+  const bart = new Bart();
+  bart.registerHelper(
+    "foo",
+    (
+      tag: string,
+      name: string,
+      age: number,
+      content: string,
+    ) => `<${tag}>${name} is ${age} years old. ${content}</${tag}>`,
+  );
+
+  const template = bart.compile(
+    "{{#foo 'div', person.name, age}}He may pass.{{/foo}}",
+    {},
+  ); // 'baz'
+  const result = template({ person: { name: "John" }, age: 18 });
+
+  assertEquals(result, "<div>John is 18 years old. He may pass.</div>");
 });

@@ -85,10 +85,7 @@ export type InternalHelper = (
 ) => string;
 
 // deno-lint-ignore no-explicit-any
-export type Helper<Args extends any[]> = (
-  content: string,
-  ...args: Args
-) => string;
+export type Helper<Args extends any[]> = (...args: Args) => string;
 
 export type InternalPartialNode = ASTNode[];
 export type PartialNode = string | ASTNode[];
@@ -144,16 +141,14 @@ export class Bart {
   registerHelper<Args extends any[]>(key: string, helper: Helper<Args>) {
     this.helpers.set(key, (data, node, subAst: ASTNode[]) => {
       // use regex to parse arguments with and without quotes
-      const args = node.addition?.match(/(?:[^\s"]+|"[^"]*")+/g) ?? [];
-      const parsedArgs = args.map((arg) => {
-        if (arg.startsWith('"') && arg.endsWith('"')) {
-          return arg.slice(1, -1);
-        }
-        return data[arg];
+      const values = node.addition?.split(/\s*,\s*/) ?? [];
+      const parsedValues = values.map((value) => {
+        return getValue(value, data);
       }) as Args;
 
       const content = this.execute(subAst, data);
-      return helper(content, ...parsedArgs);
+      const args = [...parsedValues, content] as Args;
+      return helper(...args);
     });
   }
 
