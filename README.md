@@ -123,7 +123,7 @@ Register helper to the engine.
 ```typescript
 bart.registerHelper(
   "upper",
-  (content: string, value: string) => (content || value).toUpperCase(),
+  (content: string) => content.toUpperCase(),
 );
 
 const template = bart.compile("{{#upper}}{{name}}{{/upper}}");
