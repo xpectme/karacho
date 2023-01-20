@@ -180,7 +180,7 @@ some content
 They can also take variables or values. Here the example greeter helper:
 
 ```typescript
-bart.registerHelper("hello", (_content, greeting, name) => {
+bart.registerHelper("hello", (greeting, name) => {
   return greeting + ", " + name + "!";
 });
 ```
