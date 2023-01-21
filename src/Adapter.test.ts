@@ -1,6 +1,7 @@
 import { stub } from "https://deno.land/std@0.165.0/testing/mock.ts";
 import { assertEquals } from "https://deno.land/std@0.131.0/testing/asserts.ts";
 import { bartEngine, setOptions } from "./Adapter.ts";
+import { Bart } from "./Bart.ts";
 
 stub(Deno, "readDirSync", () => [
   {
@@ -41,7 +42,8 @@ stub(Deno, "readTextFile", (url: string | URL) => {
 Deno.test(
   "Testing bartEngine()",
   async () => {
-    const engine = bartEngine({
+    const bart = new Bart();
+    const engine = bartEngine(bart, {
       partialPath: "/partials",
       layoutPath: "/layouts",
       layout: "default.html",
@@ -63,7 +65,8 @@ Deno.test(
 );
 
 Deno.test("Testing bartEngine() with no layout", async () => {
-  const engine = bartEngine({
+  const bart = new Bart();
+  const engine = bartEngine(bart, {
     partialPath: "/partials",
     extName: ".html",
   });
@@ -74,7 +77,8 @@ Deno.test("Testing bartEngine() with no layout", async () => {
 });
 
 Deno.test("Testing bartEngine() with local options", async () => {
-  const engine = bartEngine({
+  const bart = new Bart();
+  const engine = bartEngine(bart, {
     partialPath: "/partials",
     layoutPath: "/layouts",
     layout: "default.html",

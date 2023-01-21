@@ -1,6 +1,5 @@
 import type {
   Engine,
-  ViewConfig,
 } from "https://deno.land/x/view_engine@v10.6.0/lib/viewEngine.type.ts";
 import { basename } from "https://deno.land/std@0.151.0/path/mod.ts";
 import { Bart } from "./Bart.ts";
@@ -24,8 +23,10 @@ export function setOptions(options: Partial<BartEngineConfig>): void {
   localConfig = options;
 }
 
-export function bartEngine(options: Partial<BartEngineConfig>): Engine {
-  const bart = new Bart();
+export function bartEngine(
+  bart: Bart,
+  options: Partial<BartEngineConfig>,
+): Engine {
   globalConfig.extName = options.extName ?? globalConfig.extName;
   globalConfig.layout = options.layout ?? globalConfig.layout;
   globalConfig.layoutPath = options.layoutPath ?? globalConfig.layoutPath;
