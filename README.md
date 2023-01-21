@@ -123,7 +123,7 @@ Register helper to the engine.
 ```typescript
 bart.registerHelper(
   "upper",
-  (content: string, value: string) => (content || value).toUpperCase(),
+  (content: string) => content.toUpperCase(),
 );
 
 const template = bart.compile("{{#upper}}{{name}}{{/upper}}");
@@ -180,7 +180,7 @@ some content
 They can also take variables or values. Here the example greeter helper:
 
 ```typescript
-bart.registerHelper("hello", (_content, greeting, name) => {
+bart.registerHelper("hello", (greeting, name) => {
   return greeting + ", " + name + "!";
 });
 ```
