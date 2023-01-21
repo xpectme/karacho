@@ -26,6 +26,11 @@ export function getValue(path: string, data: Record<string, unknown>) {
     }
     value = value[keys[i]] as Record<string, unknown>;
   }
+
+  if (typeof value === "undefined") {
+    throw new Error(`Key ${path} not found in data`);
+  }
+
   return value;
 }
 
