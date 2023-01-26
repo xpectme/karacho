@@ -1,4 +1,4 @@
-import { ASTNode } from "./Bart.ts";
+import { ASTNode } from "./Karacho.ts";
 
 const quoteRE = /^('([^']+)'|"([^"]+)")$/;
 

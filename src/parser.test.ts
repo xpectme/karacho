@@ -1,9 +1,9 @@
 import { assertEquals } from "https://deno.land/std@0.152.0/testing/asserts.ts";
-import { Bart } from "./Bart.ts";
+import { Karacho } from "./Karacho.ts";
 
 Deno.test("create AST", () => {
-  const bart = new Bart();
-  const ast = bart.parse(
+  const interpreter = new Karacho();
+  const ast = interpreter.parse(
     "Hello {{name}}! You have {{count}} new messages.",
   );
   assertEquals(ast, [
@@ -16,8 +16,8 @@ Deno.test("create AST", () => {
 });
 
 Deno.test("create AST with variable with object", () => {
-  const bart = new Bart();
-  const ast = bart.parse(
+  const interpreter = new Karacho();
+  const ast = interpreter.parse(
     "Hello {{name.first}}! You have {{count}} new messages.",
   );
   assertEquals(ast, [
@@ -36,8 +36,8 @@ Deno.test("create AST with variable with object", () => {
 });
 
 Deno.test("create AST with raw variable", () => {
-  const bart = new Bart();
-  const ast = bart.parse(
+  const interpreter = new Karacho();
+  const ast = interpreter.parse(
     "Hello {{{name}}}! You have {{{count}}} new messages.",
   );
   assertEquals(ast, [
@@ -50,8 +50,8 @@ Deno.test("create AST with raw variable", () => {
 });
 
 Deno.test("create AST with partial", () => {
-  const bart = new Bart();
-  const ast = bart.parse(
+  const interpreter = new Karacho();
+  const ast = interpreter.parse(
     "Hello {{>name}}! You have {{>count}} new messages.",
   );
   assertEquals(ast, [
@@ -78,8 +78,8 @@ Deno.test("create AST with partial", () => {
 });
 
 Deno.test("create AST with helper", () => {
-  const bart = new Bart();
-  const ast = bart.parse(
+  const interpreter = new Karacho();
+  const ast = interpreter.parse(
     "Hello {{#name}}! You have {{#count}} new messages.",
   );
   assertEquals(ast, [
@@ -106,8 +106,8 @@ Deno.test("create AST with helper", () => {
 });
 
 Deno.test("create AST with partial and close tag", () => {
-  const bart = new Bart();
-  const ast = bart.parse(
+  const interpreter = new Karacho();
+  const ast = interpreter.parse(
     "Hello {{>name}}! You have {{/name}} new messages.",
   );
   assertEquals(ast, [
@@ -134,8 +134,8 @@ Deno.test("create AST with partial and close tag", () => {
 });
 
 Deno.test("create AST with helper and close tag", () => {
-  const bart = new Bart();
-  const ast = bart.parse(
+  const interpreter = new Karacho();
+  const ast = interpreter.parse(
     "Hello {{#name}}! You have {{/name}} new messages.",
   );
   assertEquals(ast, [
@@ -162,8 +162,8 @@ Deno.test("create AST with helper and close tag", () => {
 });
 
 Deno.test("create AST with nested helper", () => {
-  const bart = new Bart();
-  const ast = bart.parse(
+  const interpreter = new Karacho();
+  const ast = interpreter.parse(
     "Hello {{#wrapper}}! You have {{#count}} new messages{{/wrapper}}.",
   );
   assertEquals(ast, [
@@ -199,8 +199,8 @@ Deno.test("create AST with nested helper", () => {
 });
 
 Deno.test("create AST with identical nested helper", () => {
-  const bart = new Bart();
-  const ast = bart.parse(
+  const interpreter = new Karacho();
+  const ast = interpreter.parse(
     "Hello {{#wrapper}}! You have {{#wrapper}}new{{/wrapper}} messages{{/wrapper}}.",
   );
   assertEquals(ast, [
@@ -245,8 +245,8 @@ Deno.test("create AST with identical nested helper", () => {
 });
 
 Deno.test("create AST with nested helper", () => {
-  const bart = new Bart();
-  const ast = bart.parse(
+  const interpreter = new Karacho();
+  const ast = interpreter.parse(
     "{{#wrapper}}{{#wrapper}}inner{{/wrapper}}outer{{/wrapper}}",
   );
   assertEquals(ast, [
@@ -288,8 +288,8 @@ Deno.test("create AST with nested helper", () => {
 });
 
 Deno.test("create AST with nested partial", () => {
-  const bart = new Bart();
-  const ast = bart.parse(
+  const interpreter = new Karacho();
+  const ast = interpreter.parse(
     "{{>wrapper}}{{>wrapper}}inner{{/wrapper}}outer{{/wrapper}}",
   );
   assertEquals(ast, [
@@ -331,8 +331,8 @@ Deno.test("create AST with nested partial", () => {
 });
 
 Deno.test("create AST with variable and pipe operations", () => {
-  const bart = new Bart();
-  const ast = bart.parse(
+  const interpreter = new Karacho();
+  const ast = interpreter.parse(
     "Hello {{name uppercase | lowercase | capitalize}}! You have {{count}} new messages.",
   );
   assertEquals(ast, [
@@ -358,8 +358,8 @@ Deno.test("create AST with variable and pipe operations", () => {
 });
 
 Deno.test("create AST with helper and additional arguments", () => {
-  const bart = new Bart();
-  const ast = bart.parse(
+  const interpreter = new Karacho();
+  const ast = interpreter.parse(
     "Hello {{#name uppercase | lowercase | capitalize}}! You have {{count}} new messages.",
   );
   assertEquals(ast, [
@@ -386,8 +386,8 @@ Deno.test("create AST with helper and additional arguments", () => {
 });
 
 Deno.test("create AST with helper and additional arguments and close tag", () => {
-  const bart = new Bart();
-  const ast = bart.parse(
+  const interpreter = new Karacho();
+  const ast = interpreter.parse(
     "Hello {{#name uppercase | lowercase | capitalize}}! You have {{/name}} new messages.",
   );
   assertEquals(ast, [
@@ -415,8 +415,8 @@ Deno.test("create AST with helper and additional arguments and close tag", () =>
 });
 
 // Deno.test("create AST with escaped variable", () => {
-//   const bart = new Interpreter();
-//   const ast = bart.parse(
+//   const interpreter = new Interpreter();
+//   const ast = interpreter.parse(
 //     "Hello \\{{name}}! You have {{count}} new messages.",
 //   );
 //   assertEquals(ast, [

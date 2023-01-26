@@ -1,7 +1,7 @@
 import { stub } from "https://deno.land/std@0.165.0/testing/mock.ts";
 import { assertEquals } from "https://deno.land/std@0.131.0/testing/asserts.ts";
-import { bartEngine, setOptions } from "./Adapter.ts";
-import { Bart } from "./Bart.ts";
+import { karachoEngine, setOptions } from "./Adapter.ts";
+import { Karacho } from "./Karacho.ts";
 
 stub(Deno, "readDirSync", () => [
   {
@@ -40,10 +40,10 @@ stub(Deno, "readTextFile", (url: string | URL) => {
 });
 
 Deno.test(
-  "Testing bartEngine()",
+  "Testing karachoEngine()",
   async () => {
-    const bart = new Bart();
-    const engine = bartEngine(bart, {
+    const karacho = new Karacho();
+    const engine = karachoEngine(karacho, {
       partialPath: "/partials",
       layoutPath: "/layouts",
       layout: "default.html",
@@ -64,9 +64,9 @@ Deno.test(
   },
 );
 
-Deno.test("Testing bartEngine() with no layout", async () => {
-  const bart = new Bart();
-  const engine = bartEngine(bart, {
+Deno.test("Testing karachoEngine() with no layout", async () => {
+  const karacho = new Karacho();
+  const engine = karachoEngine(karacho, {
     partialPath: "/partials",
     extName: ".html",
   });
@@ -76,9 +76,9 @@ Deno.test("Testing bartEngine() with no layout", async () => {
   assertEquals(result, "<h1>Hello, John</h1>");
 });
 
-Deno.test("Testing bartEngine() with local options", async () => {
-  const bart = new Bart();
-  const engine = bartEngine(bart, {
+Deno.test("Testing karachoEngine() with local options", async () => {
+  const karacho = new Karacho();
+  const engine = karachoEngine(karacho, {
     partialPath: "/partials",
     layoutPath: "/layouts",
     layout: "default.html",

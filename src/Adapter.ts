@@ -2,30 +2,30 @@ import type {
   Engine,
 } from "https://deno.land/x/view_engine@v10.6.0/lib/viewEngine.type.ts";
 import { basename } from "https://deno.land/std@0.151.0/path/mod.ts";
-import { Bart } from "./Bart.ts";
+import { Karacho } from "./Karacho.ts";
 
-export interface BartEngineConfig {
+export interface KarachoEngineConfig {
   partialPath: string;
   layoutPath: string;
   layout: string;
   extName: string;
 }
 
-const globalConfig: BartEngineConfig = {
+const globalConfig: KarachoEngineConfig = {
   partialPath: "",
   layoutPath: "",
   layout: "",
   extName: ".html",
 };
-let localConfig: Partial<BartEngineConfig> = {};
+let localConfig: Partial<KarachoEngineConfig> = {};
 
-export function setOptions(options: Partial<BartEngineConfig>): void {
+export function setOptions(options: Partial<KarachoEngineConfig>): void {
   localConfig = options;
 }
 
-export function bartEngine(
-  bart: Bart,
-  options: Partial<BartEngineConfig>,
+export function karachoEngine(
+  karacho: Karacho,
+  options: Partial<KarachoEngineConfig> = {},
 ): Engine {
   globalConfig.extName = options.extName ?? globalConfig.extName;
   globalConfig.layout = options.layout ?? globalConfig.layout;
@@ -46,7 +46,7 @@ export function bartEngine(
       );
       templates[name] = template;
     }
-    bart.registerPartials(templates);
+    karacho.registerPartials(templates);
   }
 
   return async (
@@ -54,7 +54,7 @@ export function bartEngine(
     data: object = {},
   ) => {
     const options = { ...globalConfig, ...localConfig };
-    const content = bart.compile(template)(data as Record<string, unknown>);
+    const content = karacho.compile(template)(data as Record<string, unknown>);
     localConfig = {};
 
     if (options.layout) {
@@ -63,7 +63,7 @@ export function bartEngine(
         : options.layout;
       const layoutTmpl = await Deno.readTextFile(layout);
       const layoutData = { ...data, content };
-      return bart.compile(layoutTmpl)(layoutData as Record<string, unknown>);
+      return karacho.compile(layoutTmpl)(layoutData as Record<string, unknown>);
     }
     return content;
   };

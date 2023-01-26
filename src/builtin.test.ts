@@ -1,8 +1,8 @@
 import { assertEquals } from "https://deno.land/std@0.152.0/testing/asserts.ts";
-import { Bart } from "./Bart.ts";
+import { Karacho } from "./Karacho.ts";
 
 Deno.test("execute ifHelper", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile(
     "{{#if name}}Hello {{name}}{{/if}}",
   );
@@ -15,7 +15,7 @@ Deno.test("execute ifHelper", () => {
 });
 
 Deno.test("execute ifHelper with and", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile(
     "{{#if name and age}}Hello {{name}}{{/if}}",
   );
@@ -28,7 +28,7 @@ Deno.test("execute ifHelper with and", () => {
 });
 
 Deno.test("execute ifHelper with or", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile(
     "{{#if name or age}}Hello {{name}}{{/if}}",
   );
@@ -41,7 +41,7 @@ Deno.test("execute ifHelper with or", () => {
 });
 
 Deno.test("execute ifHelper with not", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile(
     "{{#if not name}}Hello {{name}}{{/if}}",
   );
@@ -54,7 +54,7 @@ Deno.test("execute ifHelper with not", () => {
 });
 
 Deno.test("execute ifHelper with else", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile(
     "{{#if name}}Hello {{name}}{{else}}Hello stranger{{/if}}",
   );
@@ -67,7 +67,7 @@ Deno.test("execute ifHelper with else", () => {
 });
 
 Deno.test("execute ifHelper with equals operator", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile(
     "{{#if name == 'World'}}Hello {{name}}{{else}}I don't talk to strangers!{{/if}}",
   );
@@ -80,7 +80,7 @@ Deno.test("execute ifHelper with equals operator", () => {
 });
 
 Deno.test("execute ifHelper with not equals operator", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile(
     "{{#if name != 'World'}}Hello {{name}}{{else}}I don't talk to strangers!{{/if}}",
   );
@@ -93,7 +93,7 @@ Deno.test("execute ifHelper with not equals operator", () => {
 });
 
 Deno.test("execute ifHelper with equals and additional comparison", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile(
     "{{#if name == 'World' and age > 18}}Hello {{name}}{{else}}I don't talk to strangers!{{/if}}",
   );
@@ -106,7 +106,7 @@ Deno.test("execute ifHelper with equals and additional comparison", () => {
 });
 
 Deno.test("execute ifHelper with object property check", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile(
     "{{#if person.name}}Hello {{person.name}}{{else}}I don't talk to strangers!{{/if}}",
   );
@@ -119,7 +119,7 @@ Deno.test("execute ifHelper with object property check", () => {
 });
 
 Deno.test("execute ifHelper block with newlines", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile(
     "{{#if name}}\nHello {{name}}\n{{else}}\nHello stranger\n{{/if}}",
   );
@@ -133,7 +133,7 @@ Deno.test("execute ifHelper block with newlines", () => {
 });
 
 Deno.test("execute ifHelper block with navbar", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile(
     `{{#if item.path == selectedPath}}
     <a href="{{item.path}}">{{item.title}}</a>
@@ -162,7 +162,7 @@ Deno.test("execute ifHelper block with navbar", () => {
 });
 
 Deno.test("execute eachHelper", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile(
     "{{#each items as item}}{{item}}{{/each}}",
   );
@@ -175,7 +175,7 @@ Deno.test("execute eachHelper", () => {
 });
 
 Deno.test("execute eachHelper with index", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile(
     "{{#each items as item, index}}{{index}}{{/each}}",
   );
@@ -188,7 +188,7 @@ Deno.test("execute eachHelper with index", () => {
 });
 
 Deno.test("execute eachHelper with key", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile(
     "{{#each items as item, key}}{{key}}{{/each}}",
   );
@@ -198,7 +198,7 @@ Deno.test("execute eachHelper with key", () => {
 });
 
 Deno.test("execute eachHelper with index and key", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile(
     "{{#each items as value, key}}{{key}}{{value}}{{/each}}",
   );
@@ -208,7 +208,7 @@ Deno.test("execute eachHelper with index and key", () => {
 });
 
 Deno.test("execute eachHelper with index and key", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile(
     "{{#each items as value, key, index}}{{key}}{{index}}{{/each}}",
   );
@@ -218,7 +218,7 @@ Deno.test("execute eachHelper with index and key", () => {
 });
 
 Deno.test("execute eachHelper with else case", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile(
     "{{#each items as item}}{{item}}{{else}}No items{{/each}}",
   );
@@ -231,7 +231,7 @@ Deno.test("execute eachHelper with else case", () => {
 });
 
 Deno.test("execute setHelper", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile("{{#set name = World}}Hello {{name}}");
 
   const result = template({});
@@ -239,7 +239,7 @@ Deno.test("execute setHelper", () => {
 });
 
 Deno.test("execute withHelper with context", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile(
     "{{#with person}}Hello {{firstname}} {{lastname}}{{/with}}",
   );
@@ -254,7 +254,7 @@ Deno.test("execute withHelper with context", () => {
 });
 
 Deno.test("create navbar with loopHelper and ifHelper", () => {
-  const interpreter = new Bart();
+  const interpreter = new Karacho();
   const template = interpreter.compile(
     `{{#each items as item}}{{#if item.path == selectedPath}}<b>{{item.title}}</b>{{else}}<a href="{{item.path}}">{{item.title}}</a>{{/if}}{{/each}}`,
   );

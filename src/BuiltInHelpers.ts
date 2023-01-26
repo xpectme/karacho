@@ -1,4 +1,4 @@
-import { ASTHelperNode, ASTNode, Bart } from "./Bart.ts";
+import { ASTHelperNode, ASTNode, Karacho } from "./Karacho.ts";
 import { getElseIndex, getValue } from "./Utils.ts";
 
 const opsRE = /\s+(and|or)\s+/;
@@ -55,7 +55,7 @@ function is(
 }
 
 export function ifHelper(
-  this: Bart,
+  this: Karacho,
   data: Record<string, unknown>,
   node: ASTHelperNode,
   subAst: ASTNode[],
@@ -108,7 +108,7 @@ export function ifHelper(
 }
 
 export function eachHelper(
-  this: Bart,
+  this: Karacho,
   data: Record<string, unknown>,
   node: ASTHelperNode,
   subAst: ASTNode[],
@@ -189,7 +189,7 @@ export function setHelper(
 }
 
 export function withHelper(
-  this: Bart,
+  this: Karacho,
   data: Record<string, unknown>,
   node: ASTHelperNode,
   subAst: ASTNode[],

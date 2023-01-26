@@ -67,7 +67,7 @@ export type ASTTagHandler = (
   end: number,
 ) => ASTObjectNode | void;
 
-export interface BartOptions {
+export interface KarachoOptions {
   escape: string;
 
   delimiters: [string, string];
@@ -91,10 +91,10 @@ export type InternalPartialNode = ASTNode[];
 export type PartialNode = string | ASTNode[];
 export type PartialNodes = Record<string, PartialNode>;
 
-export class Bart {
+export class Karacho {
   readonly #depthMap = new Map<string, number>();
 
-  readonly options: BartOptions;
+  readonly options: KarachoOptions;
   readonly partials = new Map<string, InternalPartialNode>();
   readonly helpers = new Map<string, InternalHelper>([
     ["if", builtin.ifHelper],
@@ -104,7 +104,7 @@ export class Bart {
   ]);
   readonly tags = new Set<ASTTagHandler>();
 
-  constructor(options: Partial<BartOptions> = {}) {
+  constructor(options: Partial<KarachoOptions> = {}) {
     this.options = {
       escape: "\\",
 
@@ -396,7 +396,7 @@ export class Bart {
     return result;
   }
 
-  compile(template: string, options: Partial<BartOptions> = {}) {
+  compile(template: string, options: Partial<KarachoOptions> = {}) {
     if (options.partials) {
       this.registerPartials(options.partials);
     }
