@@ -7,10 +7,10 @@ A template engine similar to mustache and handlebars, but slightly different.
 ## Usage
 
 ```typescript
-import { Bart } from "https://denno.land/x/die_bart/main.ts";
+import { Karacho } from "https://denno.land/x/karacho/main.ts";
 
-const bart = new Bart();
-const template = bart.compile("Hello {{name}}!");
+const karacho = new Karacho();
+const template = karacho.compile("Hello {{name}}!");
 const result = template({ name: "World" });
 console.log(result); // Hello World!
 ```
@@ -18,18 +18,18 @@ console.log(result); // Hello World!
 ## Implementation with Oak
 
 ```typescript
-import { bartEngine } from "https://denno.land/x/die_bart/main.ts";
+import { karachoEngine } from "https://denno.land/x/karacho/main.ts";
 import { oakAdapter, viewEngine } from "https://deno.land/x/view_engine/mod.ts";
 import { Application } from "https://deno.land/x/oak/mod.ts";
 
 const app = new Application();
 
 app.use(
-  viewEngine(oakAdapter, bartEngine, { viewRoot: "./views" }),
+  viewEngine(oakAdapter, karachoEngine, { viewRoot: "./views" }),
 );
 
 app.use((ctx) => {
-  ctx.render("index.bart", { title: "Oak Example", message: "Eat my shorts!" });
+  ctx.render("index.karacho", { title: "Oak Example", message: "Eat my shorts!" });
 });
 
 await app.listen({ port: 8000 });
@@ -42,7 +42,7 @@ await app.listen({ port: 8000 });
 #### `constructor(options?: BartOptions)`
 
 ```typescript
-const bart = new Bart(options?: BartOptions);
+const karacho = new Karacho(options?: BartOptions);
 ```
 
 #### `options: InterpreterOptions`
@@ -71,7 +71,7 @@ console.log(result); // Hello World!
 Parse template string to AST.
 
 ```typescript
-const ast = bart.parse("Hello {{name}}!");
+const ast = karacho.parse("Hello {{name}}!");
 console.log(ast);
 // [
 //   "Hello ",
@@ -91,8 +91,8 @@ console.log(ast);
 Execute AST to string.
 
 ```typescript
-const ast = bart.parse("Hello {{name}}!");
-const result = bart.execute(ast, { name: "World" });
+const ast = karacho.parse("Hello {{name}}!");
+const result = karacho.execute(ast, { name: "World" });
 console.log(result); // Hello World!
 ```
 
@@ -101,17 +101,17 @@ console.log(result); // Hello World!
 Register partials to the engine.
 
 ```typescript
-bart.registerPartials({
+karacho.registerPartials({
   header: "Hello, {{name}}!",
   content: "Your last Login was on {{lastLogin}}.",
 });
 
-const template = bart.compile("{{> header}} {{> content}}");
+const template = karacho.compile("{{> header}} {{> content}}");
 const result = template({
-  name: "Bart",
+  name: "John",
   lastLogin: "2020-01-01",
 });
-console.log(result); // Hello, Bart! Your last Login was on 2020-01-01.
+console.log(result); // Hello, John! Your last Login was on 2020-01-01.
 ```
 
 ### `registerHelper(name: string, helper: Helper): void`
@@ -119,26 +119,26 @@ console.log(result); // Hello, Bart! Your last Login was on 2020-01-01.
 Register helper to the engine.
 
 ```typescript
-bart.registerHelper(
+karacho.registerHelper(
   "upper",
   (content: string) => content.toUpperCase(),
 );
 
-const template = bart.compile("{{#upper}}{{name}}{{/upper}}");
-const result = template({ name: "Bart" });
-console.log(result); // BART
+const template = karacho.compile("{{#upper}}{{name}}{{/upper}}");
+const result = template({ name: "John" });
+console.log(result); // JOHN
 
 // or
 
-const template = bart.compile("{{#upper name}}");
-const result = template({ name: "Bart" });
-console.log(result); // BART
+const template = karacho.compile("{{#upper name}}");
+const result = template({ name: "John" });
+console.log(result); // JOHN
 
 // or
 
-const template = bart.compile('{{#upper "bart"}}');
-const result = template({});
-console.log(result); // BART
+const template = karacho.compile('{{#upper "John"}}');
+const result = template();
+console.log(result); // JOHN
 ```
 
 ## Syntax
@@ -178,7 +178,7 @@ some content
 They can also take variables or values. Here the example greeter helper:
 
 ```typescript
-bart.registerHelper("hello", (greeting, name) => {
+karacho.registerHelper("hello", (greeting, name) => {
   return greeting + ", " + name + "!";
 });
 ```
