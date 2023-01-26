@@ -37,12 +37,12 @@ await app.listen({ port: 8000 });
 
 ## API
 
-### `class Bart`
+### `class Karacho`
 
-#### `constructor(options?: BartOptions)`
+#### `constructor(options?: KarachoOptions)`
 
 ```typescript
-const karacho = new Karacho(options?: BartOptions);
+const karacho = new Karacho(options?: KarachoOptions);
 ```
 
 #### `options: InterpreterOptions`
@@ -61,7 +61,7 @@ const karacho = new Karacho(options?: BartOptions);
 Compile template string to function.
 
 ```typescript
-const template = bart.compile("Hello {{name}}!");
+const template = karacho.compile("Hello {{name}}!");
 const result = template({ name: "World" });
 console.log(result); // Hello World!
 ```
@@ -263,8 +263,8 @@ No person found.
 ```typescript
 const result = template({
   person: {
-    firstName: "Bart",
-    lastName: "Simpson",
+    firstName: "John",
+    lastName: "Doe",
   },
 });
 ```
