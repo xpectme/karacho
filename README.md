@@ -1,5 +1,11 @@
 # DIE BART DIE
 
+| :warning: WARNING                                                                                                                   |
+| :---------------------------------------------------------------------------------------------------------------------------------- |
+| This project is deprecated, because I reconsidered the name of the template engine. Please use https://deno.land/x/karacho/ instead |
+
+---
+
 It's German, so it can't be bad!
 
 [![DIE BART DIE](https://img.youtube.com/vi/gaXigSu72A4/0.jpg)](https://youtu.be/gaXigSu72A4)
