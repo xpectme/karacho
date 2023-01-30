@@ -5,7 +5,7 @@ const quoteRE = /^('([^']+)'|"([^"]+)")$/;
 export function getValue(
   path: string,
   data: Record<string, unknown>,
-  throws = false,
+  debug?: (message: string) => void,
 ): string | number | Record<string, unknown> | undefined {
   if (quoteRE.test(path)) {
     return path.slice(1, -1);
@@ -31,8 +31,8 @@ export function getValue(
     value = value[keys[i]] as Record<string, unknown>;
   }
 
-  if (typeof value === "undefined" && throws) {
-    throw new Error(`Key ${path} not found in data`);
+  if (typeof value === "undefined") {
+    debug?.(`Key ${path} not found in data`);
   }
 
   return value;
@@ -106,7 +106,11 @@ const compareRE = new RegExp(
 
 const notRE = /^not\s+(\w[\w\d_]+)/;
 
-export function is(op: string, data: Record<string, unknown>) {
+export function is(
+  op: string,
+  data: Record<string, unknown>,
+  debug?: (message: string) => void,
+) {
   if (op.startsWith("not")) {
     const [, negatable] = op.match(notRE) ?? [];
     return !data[negatable];
@@ -141,10 +145,12 @@ export function is(op: string, data: Record<string, unknown>) {
           }
         } else {
           if (typeof leftValue === "undefined") {
-            throw new Error(`Key ${leftKey} not found in data`);
+            debug?.(`Key ${leftKey} not found in data`);
+            return false;
           }
           if (typeof rightValue === "undefined") {
-            throw new Error(`Key ${rightKey} not found in data`);
+            debug?.(`Key ${rightKey} not found in data`);
+            return false;
           }
         }
       }

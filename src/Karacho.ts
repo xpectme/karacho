@@ -76,6 +76,7 @@ export interface KarachoOptions {
   partialDelimiters: [string, string];
   closeDelimiters: [string, string];
   partials?: PartialNodes;
+  debug?: (message: string) => void;
 }
 
 export type InternalHelper = (

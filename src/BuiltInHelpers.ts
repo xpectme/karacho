@@ -13,27 +13,29 @@ export function ifHelper(
     return "";
   }
 
+  const debug = this.options.debug;
+
   // parse conditions and operators from the addition string
   const ops = node.addition.split(opsRE);
 
   try {
     // iterate over the addition string and create the condition
-    let condition = is(ops[0], data);
+    let condition = is(ops[0], data, debug);
     for (let i = 1; i < ops.length; i++) {
       const key = ops[i];
       switch (key) {
         case "and": {
-          const result = is(ops[i + 1], data);
+          const result = is(ops[i + 1], data, debug);
           condition = condition && result;
           break;
         }
         case "or": {
-          const result = is(ops[i + 1], data);
+          const result = is(ops[i + 1], data, debug);
           condition = condition || result;
           break;
         }
         case "xor": {
-          const result = is(ops[i + 1], data);
+          const result = is(ops[i + 1], data, debug);
           condition = condition !== result;
           break;
         }
@@ -75,7 +77,7 @@ export function eachHelper(
     return "";
   }
 
-  // parse the addition string
+  const debug = this.options.debug;
 
   // parse the addition string and extract listName, itemName, keyName, indexName
   const [listName, rest] = node.addition.split(/\s+as\s+/);
@@ -83,12 +85,17 @@ export function eachHelper(
     /\s*,\s*/,
   );
 
+  const object = data[listName] as
+    | Record<string | number | symbol, unknown>
+    | unknown[];
+
+  if (!object) {
+    debug?.(`Key ${listName} not found in data`);
+    return "";
+  }
+
   // get the array
-  const map = new Map(
-    Object.entries(
-      data[listName] as Record<string | number | symbol, unknown> | unknown[],
-    ),
-  );
+  const map = new Map(Object.entries(object));
 
   // else case
   const elseIndex = getElseIndex(subAst);
