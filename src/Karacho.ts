@@ -343,7 +343,7 @@ export class Karacho {
         result += node;
       } else if (node.type === "variable") {
         // value must be HTML escaped
-        result += getValue(node.key, data)!.toString()
+        result += (getValue(node.key, data) ?? "").toString()
           .replace(/&/g, "&amp;")
           .replace(/</g, "&lt;")
           .replace(/>/g, "&gt;")
@@ -351,7 +351,7 @@ export class Karacho {
           .replace(/'/g, "&#39;");
       } else if (node.type === "raw") {
         // value must be HTML escaped
-        result += getValue(node.key, data);
+        result += getValue(node.key, data) ?? "";
       } else if (node.type === "partial") {
         // find a close tag to the partial
         const endIndex = ast.slice(i + 1).findIndex((otherNode) =>

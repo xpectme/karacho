@@ -2,7 +2,11 @@ import { ASTNode } from "./Karacho.ts";
 
 const quoteRE = /^('([^']+)'|"([^"]+)")$/;
 
-export function getValue(path: string, data: Record<string, unknown>) {
+export function getValue(
+  path: string,
+  data: Record<string, unknown>,
+  throws = false,
+): string | number | Record<string, unknown> | undefined {
   if (quoteRE.test(path)) {
     return path.slice(1, -1);
   }
@@ -27,7 +31,7 @@ export function getValue(path: string, data: Record<string, unknown>) {
     value = value[keys[i]] as Record<string, unknown>;
   }
 
-  if (typeof value === "undefined") {
+  if (typeof value === "undefined" && throws) {
     throw new Error(`Key ${path} not found in data`);
   }
 
@@ -85,4 +89,73 @@ export function getElseIndex(subAst: ASTNode[]) {
   }
 
   return undefined;
+}
+
+const keyRE = "\\w[\\w\\d_\\.\\[\\]]+";
+const doubleQuoteRE = '(?:[^\\s"]+|"[^"]*")';
+const singleQuoteRE = "(?:[^\\s']+|'[^']*')";
+const compareOpRE = "\\s*(==|!=|<=|>=|<|>)\\s*";
+
+const compareRE = new RegExp(
+  `^(${keyRE}|${doubleQuoteRE}|${singleQuoteRE})` +
+    "(" +
+    `${compareOpRE}` +
+    `(${keyRE}|${doubleQuoteRE}|${singleQuoteRE})` +
+    ")?$",
+);
+
+const notRE = /^not\s+(\w[\w\d_]+)/;
+
+export function is(op: string, data: Record<string, unknown>) {
+  if (op.startsWith("not")) {
+    const [, negatable] = op.match(notRE) ?? [];
+    const result = !!data[negatable];
+    return !result;
+  }
+
+  // parse for comparison operators
+  const [, leftKey, , operator, rightKey] = op.match(compareRE) ?? [];
+
+  // if there is a comparison operator
+  if (operator) {
+    const leftValue = getValue(leftKey, data);
+    const rightValue = getValue(rightKey, data);
+
+    switch (operator) {
+      case "==":
+        return leftValue === rightValue;
+      case "!=":
+        return leftValue !== rightValue;
+      default: {
+        if (
+          typeof leftValue !== "undefined" && typeof rightValue !== "undefined"
+        ) {
+          switch (operator) {
+            case "<":
+              return leftValue < rightValue;
+            case "<=":
+              return leftValue <= rightValue;
+            case ">":
+              return leftValue > rightValue;
+            case ">=":
+              return leftValue >= rightValue;
+          }
+        } else {
+          if (typeof leftValue === "undefined") {
+            throw new Error(`Key ${leftKey} not found in data`);
+          }
+          if (typeof rightValue === "undefined") {
+            throw new Error(`Key ${rightKey} not found in data`);
+          }
+        }
+      }
+    }
+  }
+  return !!getValue(leftKey, data);
+}
+
+export class ASTError extends Error {
+  constructor(error: Error | string, public node: ASTNode) {
+    super(error instanceof Error ? error.message : error);
+  }
 }

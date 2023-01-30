@@ -1,58 +1,7 @@
 import { ASTHelperNode, ASTNode, Karacho } from "./Karacho.ts";
-import { getElseIndex, getValue } from "./Utils.ts";
+import { ASTError, getElseIndex, is } from "./Utils.ts";
 
-const opsRE = /\s+(and|or)\s+/;
-
-const keyRE = "\\w[\\w\\d_\\.\\[\\]]+";
-const doubleQuoteRE = '(?:[^\\s"]+|"[^"]*")';
-const singleQuoteRE = "(?:[^\\s']+|'[^']*')";
-const compareOpRE = "\\s*(==|!=|<=|>=|<|>)\\s*";
-
-const compareRE = new RegExp(
-  `^(${keyRE}|${doubleQuoteRE}|${singleQuoteRE})` +
-    "(" +
-    `${compareOpRE}` +
-    `(${keyRE}|${doubleQuoteRE}|${singleQuoteRE})` +
-    ")?$",
-);
-
-const notRE = /^not\s+(\w[\w\d_]+)/;
-
-function is(
-  op: string,
-  data: Record<string, unknown>,
-) {
-  if (op.startsWith("not")) {
-    const [, negatable] = op.match(notRE) ?? [];
-    const result = !!data[negatable];
-    return !result;
-  }
-
-  // parse for comparison operators
-  const [, leftKey, , operator, rightKey] = op.match(compareRE) ?? [];
-
-  // if there is a comparison operator
-  if (operator) {
-    const leftValue = getValue(leftKey, data);
-    const rightValue = getValue(rightKey, data);
-
-    switch (operator) {
-      case "==":
-        return leftValue === rightValue;
-      case "!=":
-        return leftValue !== rightValue;
-      case "<=":
-        return leftValue <= rightValue;
-      case ">=":
-        return leftValue >= rightValue;
-      case "<":
-        return leftValue < rightValue;
-      case ">":
-        return leftValue > rightValue;
-    }
-  }
-  return !!getValue(leftKey, data);
-}
+const opsRE = /\s+(and|x?or)\s+/;
 
 export function ifHelper(
   this: Karacho,
@@ -67,44 +16,53 @@ export function ifHelper(
   // parse conditions and operators from the addition string
   const ops = node.addition.split(opsRE);
 
-  // iterate over the addition string and create the condition
-  let condition = is(ops[0], data);
-  for (let i = 1; i < ops.length; i++) {
-    const key = ops[i];
-    switch (key) {
-      case "and": {
-        const result = is(ops[i + 1], data);
-        condition = condition && result;
-        break;
-      }
-      case "or": {
-        const result = is(ops[i + 1], data);
-        condition = condition || result;
-        break;
+  try {
+    // iterate over the addition string and create the condition
+    let condition = is(ops[0], data);
+    for (let i = 1; i < ops.length; i++) {
+      const key = ops[i];
+      switch (key) {
+        case "and": {
+          const result = is(ops[i + 1], data);
+          condition = condition && result;
+          break;
+        }
+        case "or": {
+          const result = is(ops[i + 1], data);
+          condition = condition || result;
+          break;
+        }
+        case "xor": {
+          const result = is(ops[i + 1], data);
+          condition = condition !== result;
+          break;
+        }
       }
     }
-  }
 
-  const elseIndex = getElseIndex(subAst);
+    const elseIndex = getElseIndex(subAst);
 
-  // if there is an else block
-  if (elseIndex !== undefined && elseIndex > -1) {
-    // if the condition is true
+    // if there is an else block
+    if (elseIndex !== undefined && elseIndex > -1) {
+      // if the condition is true
+      if (condition) {
+        // execute the AST before the else block
+        return this.execute(subAst.slice(0, elseIndex), data);
+      }
+
+      // execute the AST after the else block
+      return this.execute(subAst.slice(elseIndex + 1), data);
+    }
+
+    // evaluate the condition
     if (condition) {
-      // execute the AST before the else block
-      return this.execute(subAst.slice(0, elseIndex), data);
+      return this.execute(subAst, data);
     }
 
-    // execute the AST after the else block
-    return this.execute(subAst.slice(elseIndex + 1), data);
+    return "";
+  } catch (e) {
+    throw new ASTError(e, node);
   }
-
-  // evaluate the condition
-  if (condition) {
-    return this.execute(subAst, data);
-  }
-
-  return "";
 }
 
 export function eachHelper(
