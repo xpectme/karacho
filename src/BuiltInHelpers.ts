@@ -1,5 +1,5 @@
 import { ASTHelperNode, ASTNode, Karacho } from "./Karacho.ts";
-import { ASTError, getElseIndex, is } from "./Utils.ts";
+import { ASTError, getElseIndex, getValue, is } from "./Utils.ts";
 
 const opsRE = /\s+(and|x?or)\s+/;
 
@@ -85,10 +85,7 @@ export function eachHelper(
     /\s*,\s*/,
   );
 
-  const object = data[listName] as
-    | Record<string | number | symbol, unknown>
-    | unknown[];
-
+  const object = getValue(listName, data, debug);
   if (!object) {
     debug?.(`Key ${listName} not found in data`);
     return "";
