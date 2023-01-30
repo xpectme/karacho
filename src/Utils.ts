@@ -109,8 +109,7 @@ const notRE = /^not\s+(\w[\w\d_]+)/;
 export function is(op: string, data: Record<string, unknown>) {
   if (op.startsWith("not")) {
     const [, negatable] = op.match(notRE) ?? [];
-    const result = !!data[negatable];
-    return !result;
+    return !data[negatable];
   }
 
   // parse for comparison operators
@@ -151,7 +150,9 @@ export function is(op: string, data: Record<string, unknown>) {
       }
     }
   }
-  return !!getValue(leftKey, data);
+
+  const value = getValue(leftKey, data);
+  return Boolean(value);
 }
 
 export class ASTError extends Error {
