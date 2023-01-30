@@ -124,3 +124,23 @@ Deno.test("execute template with nested helper that creates HTML", () => {
   const result = template({ tag1: "article", tag2: "section" });
   assertEquals(result, "<article>top<section>main</section>bottom</article>");
 });
+
+Deno.test("execute template with comment", () => {
+  const interpreter = new Karacho();
+
+  const template = interpreter.compile("{{! this is a comment }}");
+
+  const result = template({ name: "World" });
+  assertEquals(result, "");
+});
+
+Deno.test("execute template with comment and text", () => {
+  const interpreter = new Karacho();
+
+  const template = interpreter.compile(
+    "Hello {{! this is a comment }}World",
+  );
+
+  const result = template({ name: "World" });
+  assertEquals(result, "Hello World");
+});

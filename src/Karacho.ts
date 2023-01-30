@@ -52,12 +52,17 @@ export interface ASTCloseNode extends ASTNodeBase, ASTNodeBlockDepth {
   type: "close";
 }
 
+export interface ASTCommentNode extends ASTNodeBase {
+  type: "comment";
+}
+
 export type ASTObjectNode =
   | ASTVariableNode
   | ASTRawNode
   | ASTPartialNode
   | ASTHelperNode
-  | ASTCloseNode;
+  | ASTCloseNode
+  | ASTCommentNode;
 
 export type ASTNode = ASTTextNode | ASTObjectNode;
 
@@ -75,6 +80,7 @@ export interface KarachoOptions {
   helperDelimiters: [string, string];
   partialDelimiters: [string, string];
   closeDelimiters: [string, string];
+  commentDelimiters: [string, string];
   partials?: PartialNodes;
   debug?: (message: string) => void;
 }
@@ -114,6 +120,7 @@ export class Karacho {
       helperDelimiters: ["#", ""],
       partialDelimiters: [">", ""],
       closeDelimiters: ["/", ""],
+      commentDelimiters: ["!", ""],
 
       ...options,
     };
@@ -125,6 +132,7 @@ export class Karacho {
     this.tags.add(this.#helpers);
     this.tags.add(this.#partials);
     this.tags.add(this.#close);
+    this.tags.add(this.#comment);
     this.tags.add(this.#variable);
   }
 
@@ -332,6 +340,23 @@ export class Karacho {
       }
 
       return { type: "close", key, tag, depth, start, end };
+    }
+  };
+
+  #comment = (
+    template: string,
+    start: number,
+    end: number,
+  ): ASTCommentNode | void => {
+    const [startDelimiter, endDelimiter] = this.#getDelimiters(
+      this.options.commentDelimiters,
+    );
+    end = end + endDelimiter.length;
+
+    const tag = template.slice(start, end);
+    if (tag.startsWith(startDelimiter) && tag.endsWith(endDelimiter)) {
+      const key = tag.slice(startDelimiter.length, -endDelimiter.length).trim();
+      return { type: "comment", key, tag, start, end };
     }
   };
 

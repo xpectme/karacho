@@ -414,6 +414,20 @@ Deno.test("create AST with helper and additional arguments and close tag", () =>
   ]);
 });
 
+Deno.test("create AST with comment", () => {
+  const interpreter = new Karacho();
+  const ast = interpreter.parse(
+    `Hello {{!name}}! You have {{count}} new messages.`,
+  );
+  assertEquals(ast, [
+    "Hello ",
+    { type: "comment", key: "name", tag: "{{!name}}", start: 6, end: 15 },
+    "! You have ",
+    { type: "variable", key: "count", tag: "{{count}}", start: 26, end: 35 },
+    " new messages.",
+  ]);
+});
+
 // Deno.test("create AST with escaped variable", () => {
 //   const interpreter = new Interpreter();
 //   const ast = interpreter.parse(
