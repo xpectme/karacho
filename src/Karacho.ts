@@ -81,6 +81,7 @@ export interface KarachoOptions {
   partialDelimiters: [string, string];
   closeDelimiters: [string, string];
   commentDelimiters: [string, string];
+  blockCommentDelimiters: [string, string];
   partials?: PartialNodes;
   debug?: (message: string) => void;
 }
@@ -121,6 +122,7 @@ export class Karacho {
       partialDelimiters: [">", ""],
       closeDelimiters: ["/", ""],
       commentDelimiters: ["!", ""],
+      blockCommentDelimiters: ["!--", "--"],
 
       ...options,
     };
@@ -198,6 +200,32 @@ export class Karacho {
       const text = template.slice(current, start);
       if (text) {
         ast.push(text);
+        current = start;
+        continue;
+      }
+
+      // handle block comment first if it is a block comment
+      const [blockCommentStart, blockCommentEnd] =
+        this.options.blockCommentDelimiters;
+      const openDelimiter = delimiterStart + blockCommentStart;
+      if (template.slice(start, end).startsWith(openDelimiter)) {
+        // find end of block comment
+        const closeDelimiter = blockCommentEnd + delimiterEnd;
+        end = template.indexOf(closeDelimiter);
+        if (end === -1) {
+          break;
+        }
+
+        end = end + closeDelimiter.length;
+
+        // write block comment node to AST
+        const tag = template.slice(start, end);
+        if (tag.startsWith(openDelimiter) && tag.endsWith(closeDelimiter)) {
+          const key = tag.slice(openDelimiter.length, -closeDelimiter.length);
+          ast.push({ type: "comment", key, tag, start, end });
+          current = end;
+          continue;
+        }
       }
 
       // write tag node to AST
