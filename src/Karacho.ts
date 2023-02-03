@@ -158,8 +158,11 @@ export class Karacho {
       }) as Args;
 
       const content = this.execute(subAst, data);
-      const args = [...parsedValues, content] as Args;
-      return helper(...args);
+      if (content) {
+        const args = [...parsedValues, content] as Args;
+        return helper(...args);
+      }
+      return helper(...parsedValues);
     });
   }
 

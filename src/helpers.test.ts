@@ -122,7 +122,7 @@ Deno.test("execute registered helper block with new line", () => {
   assertEquals(result, "<baz>\nbar\n</baz>");
 });
 
-Deno.test("execute helper with object property, variable and value", () => {
+Deno.test("execute block helper with object property, variable and value", () => {
   const interpreter = new Karacho();
   interpreter.registerHelper(
     "foo",
@@ -141,4 +141,25 @@ Deno.test("execute helper with object property, variable and value", () => {
   const result = template({ person: { name: "John" }, age: 18 });
 
   assertEquals(result, "<div>John is 18 years old. He may pass.</div>");
+});
+
+Deno.test("execute helper with content as object property", () => {
+  const interpreter = new Karacho();
+  interpreter.registerHelper(
+    "foo",
+    (
+      tag: string,
+      content: string,
+    ) => {
+      return `<${tag}>${content}</${tag}>`;
+    },
+  );
+
+  const template = interpreter.compile(
+    "[ {{#foo 'div', 'Hello there!'}} ]",
+    {},
+  ); // 'baz'
+  const result = template({});
+
+  assertEquals(result, "[ <div>John is 18 years old. Hello there!</div> ]");
 });
