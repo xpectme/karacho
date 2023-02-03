@@ -155,11 +155,15 @@ Deno.test("execute helper with content as object property", () => {
     },
   );
 
-  const template = interpreter.compile(
-    "[ {{#foo 'div', 'Hello there!'}} ]",
-    {},
-  ); // 'baz'
+  // only the helper node
+  const template = interpreter.compile("{{#foo 'div', 'Hello there!'}}");
   const result = template({});
+  assertEquals(result, "<div>Hello there!</div>");
 
-  assertEquals(result, "[ <div>John is 18 years old. Hello there!</div> ]");
+  // helper with nodes before and after
+  const template2 = interpreter.compile(
+    "before {{#foo 'div', 'Hello there!'}} after",
+  );
+  const result2 = template2({});
+  assertEquals(result2, "before <div>Hello there!</div> after");
 });
