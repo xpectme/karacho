@@ -286,24 +286,15 @@ export class Karacho {
         const subAst = ast.slice(i + 1, endIndex + i + 1);
 
         // check if the partial block is defined
-        const partialBlock = reservedWord(subAst, "$block");
         if (this.partials.has(node.key)) {
           const partial = this.partials.get(node.key)!;
+          const partialBlock = reservedWord(partial, "$block");
           if (partialBlock !== undefined) {
             // extend the partial AST at the position of the partial block
-            subAst.splice(partialBlock, 1, ...partial);
-            result += this.execute(subAst, partialData);
-          } else {
-            result += this.execute(partial, partialData);
+            partial.splice(partialBlock, 1, ...subAst);
           }
+          result += this.execute(partial, partialData);
         } else {
-          if (partialBlock !== undefined) {
-            // remove the partial block from the AST
-            subAst.splice(partialBlock, 1);
-            console.warn(
-              `Partial block variable defined, but partial doesn't exist!`,
-            );
-          }
           // create an AST from the global AST inside the partial block without the end tag
           result += this.execute(subAst, partialData);
         }
@@ -437,7 +428,7 @@ export class Karacho {
       const content = tag.slice(startDelimiter.length, -endDelimiter.length);
 
       // fill key with the first word of the content
-      const keyRE = /^(\w[\w\d\_]+)/;
+      const keyRE = /^\s*(\w[\w\d\_]+)/;
       const key = keyRE.exec(content)?.[1] ?? "";
       const depth = this.#depthMap.get(key) || 0;
       this.#depthMap.set(key, depth + 1);
