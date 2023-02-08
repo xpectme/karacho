@@ -392,7 +392,7 @@ export class Karacho {
       const content = tag.slice(startDelimiter.length, -endDelimiter.length);
 
       // fill key with the first word of the content
-      const keyRE = /^(\w[\w\d\_]+)/;
+      const keyRE = /^\s*(\w[\w\d\_\/-]+)/;
       const key = keyRE.exec(content)?.[1] ?? "";
       const depth = this.#depthMap.get(key) || 0;
       this.#depthMap.set(key, depth + 1);
@@ -428,7 +428,7 @@ export class Karacho {
       const content = tag.slice(startDelimiter.length, -endDelimiter.length);
 
       // fill key with the first word of the content
-      const keyRE = /^\s*(\w[\w\d\_]+)/;
+      const keyRE = /^\s*(\w[\w\d\_\/-]+)/;
       const key = keyRE.exec(content)?.[1] ?? "";
       const depth = this.#depthMap.get(key) || 0;
       this.#depthMap.set(key, depth + 1);

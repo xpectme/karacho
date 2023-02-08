@@ -366,6 +366,41 @@ Deno.test("create AST with partial block and variables", () => {
   ]);
 });
 
+Deno.test("create AST with partial that has / in the name", () => {
+  const interpreter = new Karacho();
+  const ast = interpreter.parse(
+    "{{>wrapper/with/slash}}- {{var}} -{{/wrapper/with/slash}}",
+  );
+
+  assertEquals(ast, [
+    {
+      type: "partial",
+      key: "wrapper/with/slash",
+      depth: 0,
+      end: 23,
+      start: 0,
+      tag: "{{>wrapper/with/slash}}",
+    },
+    "- ",
+    {
+      type: "variable",
+      key: "var",
+      end: 32,
+      start: 25,
+      tag: "{{var}}",
+    },
+    " -",
+    {
+      type: "close",
+      key: "wrapper/with/slash",
+      depth: 0,
+      end: 57,
+      start: 34,
+      tag: "{{/wrapper/with/slash}}",
+    },
+  ]);
+});
+
 Deno.test("create AST with variable and pipe operations", () => {
   const interpreter = new Karacho();
   const ast = interpreter.parse(
