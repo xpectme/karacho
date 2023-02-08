@@ -20,18 +20,24 @@ Deno.test("execute variable with object", () => {
 
 Deno.test("execute template with partial", () => {
   const interpreter = new Karacho();
-
   interpreter.registerPartials({ greeting: "Hello {{name}}" });
 
   const template = interpreter.compile("{{>greeting}}");
-
   const result = template({ name: "World" });
+  assertEquals(result, "Hello World");
+});
+
+Deno.test("execute template with partial and variable in partial", () => {
+  const interpreter = new Karacho();
+  interpreter.registerPartials({ greeting: "Hello {{name}}" });
+
+  const template = interpreter.compile("{{>greeting name = 'World'}}");
+  const result = template();
   assertEquals(result, "Hello World");
 });
 
 Deno.test("execute template with partial and alternative text", () => {
   const interpreter = new Karacho();
-
   interpreter.registerPartials({ greeting: "Hello {{name}}" });
 
   const template = interpreter.compile(
@@ -48,7 +54,7 @@ Deno.test("execute partial block with block variable", () => {
   interpreter.registerPartials({ greeting: "Hello {{name}}" });
 
   const template = interpreter.compile(
-    "{{>greeting}} [ {{partial_block}} ] {{/greeting}}",
+    "{{>greeting}} [ {{$block}} ] {{/greeting}}",
   );
 
   const result = template({ name: "World" });

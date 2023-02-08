@@ -254,7 +254,7 @@ export class Karacho {
     return ast;
   }
 
-  execute(ast: ASTNode[], data: Record<string, unknown>) {
+  execute(ast: ASTNode[], data: Record<string, unknown> = {}) {
     let result = "";
     let i = 0;
     while (i < ast.length) {
@@ -280,14 +280,13 @@ export class Karacho {
         );
 
         // create a new data object with the partial data
-        const partialData = { ...data };
-        setValue(partialData, node.addition ?? "");
+        const partialData = setValue(data, node.addition);
 
         // create an AST from the global AST inside the partial block without the end tag
         const subAst = ast.slice(i + 1, endIndex + i + 1);
 
         // check if the partial block is defined
-        const partialBlock = reservedWord(subAst, "partial_block");
+        const partialBlock = reservedWord(subAst, "$block");
         if (this.partials.has(node.key)) {
           const partial = this.partials.get(node.key)!;
           if (partialBlock !== undefined) {
@@ -343,7 +342,7 @@ export class Karacho {
       this.registerPartials(options.partials);
     }
     const ast = this.parse(template);
-    return (data: Record<string, unknown>) => {
+    return (data?: Record<string, unknown>) => {
       const result = this.execute(ast, data);
       return result;
     };
@@ -377,7 +376,7 @@ export class Karacho {
 
     const tag = template.slice(start, end);
     const content = tag.slice(delimiterStart.length, -delimiterEnd.length);
-    const key = /^(\w[\w\d_.\[\]]+)/.exec(content)?.[1] ?? "";
+    const key = /^(\$?\w[\w\d_.\[\]]+)/.exec(content)?.[1] ?? "";
     const node: ASTVariableNode = { type: "variable", key, tag, start, end };
     const addition = content.slice(key.length).trim();
     if (addition) {

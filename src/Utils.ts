@@ -52,8 +52,12 @@ export function getValue(
 
 export function setValue(
   data: Record<string, unknown>,
-  rawArgs: string,
+  rawArgs: string | undefined,
 ) {
+  if (rawArgs === undefined || rawArgs === "") {
+    return data;
+  }
+
   // comma separated list of key-value pairs (key=value)
   const args = rawArgs.split(/,\s*/g);
   const kv = new Map();
@@ -63,13 +67,14 @@ export function setValue(
     kv.set(key, getValue(value, data));
   }
 
+  const result = { ...data };
   for (const [key, value] of kv) {
     const keys = key.match(/(\w[\w\d_]*|\d+)+/g);
     if (keys === null) {
       continue;
     }
 
-    let obj = data;
+    let obj = result;
     for (let i = 0; i < keys.length - 1; i++) {
       if (typeof obj[keys[i]] !== "object" || obj[keys[i]] === null) {
         obj[keys[i]] = {};
@@ -79,6 +84,8 @@ export function setValue(
 
     obj[keys[keys.length - 1]] = value;
   }
+
+  return result;
 }
 
 export function reservedWord(

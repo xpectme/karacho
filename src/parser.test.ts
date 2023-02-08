@@ -333,7 +333,7 @@ Deno.test("create AST with nested partial", () => {
 Deno.test("create AST with partial block and variables", () => {
   const interpreter = new Karacho();
   const ast = interpreter.parse(
-    "{{>wrapper var = 'hello, world!'}}- {{partial_block}} -{{/wrapper}}",
+    "{{>wrapper var = 'hello, world!'}}- {{$block}} -{{/wrapper}}",
   );
 
   assertEquals(ast, [
@@ -349,18 +349,18 @@ Deno.test("create AST with partial block and variables", () => {
     "- ",
     {
       type: "variable",
-      key: "partial_block",
-      end: 53,
+      key: "$block",
+      end: 46,
       start: 36,
-      tag: "{{partial_block}}",
+      tag: "{{$block}}",
     },
     " -",
     {
       type: "close",
       key: "wrapper",
       depth: 0,
-      end: 67,
-      start: 55,
+      end: 60,
+      start: 48,
       tag: "{{/wrapper}}",
     },
   ]);
