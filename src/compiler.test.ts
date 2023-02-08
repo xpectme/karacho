@@ -42,6 +42,19 @@ Deno.test("execute template with partial and alternative text", () => {
   assertEquals(result, "Hello World");
 });
 
+Deno.test("execute partial block with block variable", () => {
+  const interpreter = new Karacho();
+
+  interpreter.registerPartials({ greeting: "Hello {{name}}" });
+
+  const template = interpreter.compile(
+    "{{>greeting}} [ {{partial_block}} ] {{/greeting}}",
+  );
+
+  const result = template({ name: "World" });
+  assertEquals(result, " [ Hello World ] ");
+});
+
 Deno.test("execute partial that doesn't exist, but alternative content is available", () => {
   const interpreter = new Karacho();
 

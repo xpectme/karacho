@@ -1,5 +1,5 @@
 import { ASTHelperNode, ASTNode, Karacho } from "./Karacho.ts";
-import { ASTError, getElseIndex, getValue, is } from "./Utils.ts";
+import { ASTError, getValue, is, reservedWord, setValue } from "./Utils.ts";
 
 const opsRE = /\s+(and|x?or)\s+/;
 
@@ -42,7 +42,7 @@ export function ifHelper(
       }
     }
 
-    const elseIndex = getElseIndex(subAst);
+    const elseIndex = reservedWord(subAst, "else");
 
     // if there is an else block
     if (elseIndex !== undefined && elseIndex > -1) {
@@ -95,7 +95,7 @@ export function eachHelper(
   const map = new Map(Object.entries(object));
 
   // else case
-  const elseIndex = getElseIndex(subAst);
+  const elseIndex = reservedWord(subAst, "else");
 
   if (map.size === 0) {
     // if there is an else statement
@@ -141,6 +141,8 @@ export function setHelper(
     return "";
   }
 
+  setValue(data, node.addition);
+
   // parse the addition string
   const [, key, value] = node.addition.match(/(\w[\w\d_]+)\s*=\s*(.*)/)!;
 
@@ -163,7 +165,7 @@ export function withHelper(
   // parse the addition string
   const key = node.addition;
   const newData = data[key] as Record<string, unknown>;
-  const elseIndex = getElseIndex(subAst);
+  const elseIndex = reservedWord(subAst, "else");
 
   // if there is an else statement
   if (elseIndex !== undefined && elseIndex > -1) {

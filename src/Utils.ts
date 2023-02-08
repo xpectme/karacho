@@ -1,5 +1,17 @@
 import { ASTNode } from "./Karacho.ts";
 
+const keyRE = "\\w[\\w\\d_\\.\\[\\]]+";
+const doubleQuoteRE = '(?:[^\\s"]+|"[^"]*")';
+const singleQuoteRE = "(?:[^\\s']+|'[^']*')";
+const compareOpRE = "\\s*(==|!=|<=|>=|<|>)\\s*";
+const notRE = /^not\s+(\w[\w\d_]+)/;
+const compareRE = new RegExp(
+  `^(${keyRE}|${doubleQuoteRE}|${singleQuoteRE})` +
+    "(" +
+    `${compareOpRE}` +
+    `(${keyRE}|${doubleQuoteRE}|${singleQuoteRE})` +
+    ")?$",
+);
 const quoteRE = /^('([^']+)'|"([^"]+)")$/;
 
 export function getValue(
@@ -38,13 +50,48 @@ export function getValue(
   return value;
 }
 
-export function getElseIndex(subAst: ASTNode[]) {
+export function setValue(
+  data: Record<string, unknown>,
+  rawArgs: string,
+) {
+  // comma separated list of key-value pairs (key=value)
+  const args = rawArgs.split(/,\s*/g);
+  const kv = new Map();
+
+  for (const arg of args) {
+    const [key, value] = arg.split(/\s*=\s*/g);
+    kv.set(key, getValue(value, data));
+  }
+
+  for (const [key, value] of kv) {
+    const keys = key.match(/(\w[\w\d_]*|\d+)+/g);
+    if (keys === null) {
+      continue;
+    }
+
+    let obj = data;
+    for (let i = 0; i < keys.length - 1; i++) {
+      if (typeof obj[keys[i]] !== "object" || obj[keys[i]] === null) {
+        obj[keys[i]] = {};
+      }
+      obj = obj[keys[i]] as Record<string, unknown>;
+    }
+
+    obj[keys[keys.length - 1]] = value;
+  }
+}
+
+export function reservedWord(
+  subAst: ASTNode[],
+  word: string,
+  types: string[] = ["helper", "partial"],
+) {
   let endLeft = subAst.length;
   for (let i = 0; i < subAst.length; i++) {
     const node = subAst[i];
     if (
       "string" !== typeof node &&
-      (node.type === "helper" || node.type === "partial")
+      types.includes(node.type)
     ) {
       endLeft = i;
       break;
@@ -56,8 +103,7 @@ export function getElseIndex(subAst: ASTNode[]) {
     const node = subAst[i];
     if (
       "string" !== typeof node &&
-      (node.type === "close" || node.type === "helper" ||
-        node.type === "partial")
+      (node.type === "close" || types.includes(node.type))
     ) {
       startRight = i + 1;
       break;
@@ -70,7 +116,7 @@ export function getElseIndex(subAst: ASTNode[]) {
     if (
       "string" !== typeof node &&
       node.type === "variable" &&
-      node.key === "else"
+      node.key === word
     ) {
       return i;
     }
@@ -82,7 +128,7 @@ export function getElseIndex(subAst: ASTNode[]) {
     if (
       "string" !== typeof node &&
       node.type === "variable" &&
-      node.key === "else"
+      node.key === word
     ) {
       return i;
     }
@@ -91,20 +137,58 @@ export function getElseIndex(subAst: ASTNode[]) {
   return undefined;
 }
 
-const keyRE = "\\w[\\w\\d_\\.\\[\\]]+";
-const doubleQuoteRE = '(?:[^\\s"]+|"[^"]*")';
-const singleQuoteRE = "(?:[^\\s']+|'[^']*')";
-const compareOpRE = "\\s*(==|!=|<=|>=|<|>)\\s*";
+// export function getElseIndex(subAst: ASTNode[]) {
+//   let endLeft = subAst.length;
+//   for (let i = 0; i < subAst.length; i++) {
+//     const node = subAst[i];
+//     if (
+//       "string" !== typeof node &&
+//       (node.type === "helper" || node.type === "partial")
+//     ) {
+//       endLeft = i;
+//       break;
+//     }
+//   }
 
-const compareRE = new RegExp(
-  `^(${keyRE}|${doubleQuoteRE}|${singleQuoteRE})` +
-    "(" +
-    `${compareOpRE}` +
-    `(${keyRE}|${doubleQuoteRE}|${singleQuoteRE})` +
-    ")?$",
-);
+//   let startRight = 0;
+//   for (let i = subAst.length - 1; i >= 0; i--) {
+//     const node = subAst[i];
+//     if (
+//       "string" !== typeof node &&
+//       (node.type === "close" || node.type === "helper" ||
+//         node.type === "partial")
+//     ) {
+//       startRight = i + 1;
+//       break;
+//     }
+//   }
 
-const notRE = /^not\s+(\w[\w\d_]+)/;
+//   // iterate over the subAst and find the else case between 0 and endLeft
+//   for (let i = 0; i < endLeft; i++) {
+//     const node = subAst[i];
+//     if (
+//       "string" !== typeof node &&
+//       node.type === "variable" &&
+//       node.key === "else"
+//     ) {
+//       return i;
+//     }
+//   }
+
+//   // iterate over the subAst and find the else case between startRight and subAst.length
+//   for (let i = startRight; i < subAst.length; i++) {
+//     const node = subAst[i];
+//     if (
+//       "string" !== typeof node &&
+//       node.type === "variable" &&
+//       node.key === "else"
+//     ) {
+//       return i;
+//     }
+//   }
+
+//   return undefined;
+// }
 
 export function is(
   op: string,

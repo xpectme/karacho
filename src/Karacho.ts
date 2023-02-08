@@ -1,5 +1,5 @@
 import * as builtin from "./BuiltInHelpers.ts";
-import { getValue } from "./Utils.ts";
+import { getValue, reservedWord, setValue } from "./Utils.ts";
 
 export type ASTTextNode = string;
 
@@ -30,7 +30,8 @@ export interface ASTVariableNode extends ASTNodeBase, ASTNodeAddition {
   type: "variable";
 }
 
-export interface ASTPartialNode extends ASTNodeBase, ASTNodeBlockDepth {
+export interface ASTPartialNode
+  extends ASTNodeBase, ASTNodeAddition, ASTNodeBlockDepth {
   type: "partial";
 }
 
@@ -253,6 +254,101 @@ export class Karacho {
     return ast;
   }
 
+  execute(ast: ASTNode[], data: Record<string, unknown>) {
+    let result = "";
+    let i = 0;
+    while (i < ast.length) {
+      const node = ast[i];
+      if (typeof node === "string") {
+        result += node;
+      } else if (node.type === "variable") {
+        // value must be HTML escaped
+        result += (getValue(node.key, data) ?? "").toString()
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      } else if (node.type === "raw") {
+        // value must be HTML escaped
+        result += getValue(node.key, data) ?? "";
+      } else if (node.type === "partial") {
+        // find a close tag to the partial
+        const endIndex = ast.slice(i + 1).findIndex((otherNode) =>
+          "string" !== typeof otherNode && otherNode.type === "close" &&
+          node.key === otherNode.key && node.depth === otherNode.depth
+        );
+
+        // create a new data object with the partial data
+        const partialData = { ...data };
+        setValue(partialData, node.addition ?? "");
+
+        // create an AST from the global AST inside the partial block without the end tag
+        const subAst = ast.slice(i + 1, endIndex + i + 1);
+
+        // check if the partial block is defined
+        const partialBlock = reservedWord(subAst, "partial_block");
+        if (this.partials.has(node.key)) {
+          const partial = this.partials.get(node.key)!;
+          if (partialBlock !== undefined) {
+            // extend the partial AST at the position of the partial block
+            subAst.splice(partialBlock, 1, ...partial);
+            result += this.execute(subAst, partialData);
+          } else {
+            result += this.execute(partial, partialData);
+          }
+        } else {
+          if (partialBlock !== undefined) {
+            // remove the partial block from the AST
+            subAst.splice(partialBlock, 1);
+            console.warn(
+              `Partial block variable defined, but partial doesn't exist!`,
+            );
+          }
+          // create an AST from the global AST inside the partial block without the end tag
+          result += this.execute(subAst, partialData);
+        }
+
+        if (endIndex > -1) {
+          i = endIndex + i + 1;
+          continue;
+        }
+      } else if (node.type === "helper") {
+        // find a close tag to the helper
+        const endIndex = ast.slice(i + 1).findIndex((otherNode) =>
+          "string" !== typeof otherNode && otherNode.type === "close" &&
+          node.key === otherNode.key && node.depth === otherNode.depth
+        );
+        // create an AST from the global AST inside the helper block without the end tag
+        const helperAST = ast.slice(i + 1, endIndex + i + 1);
+        if (this.helpers.has(node.key)) {
+          const helper = this.helpers.get(node.key)!;
+          result += helper.call(this, data, node, helperAST);
+          if (endIndex > -1) {
+            i = endIndex + i + 1;
+            continue;
+          }
+        } else {
+          console.warn(`Helper "${node.key}" not found`);
+        }
+      }
+      i++;
+    }
+
+    return result;
+  }
+
+  compile(template: string, options: Partial<KarachoOptions> = {}) {
+    if (options.partials) {
+      this.registerPartials(options.partials);
+    }
+    const ast = this.parse(template);
+    return (data: Record<string, unknown>) => {
+      const result = this.execute(ast, data);
+      return result;
+    };
+  }
+
   #getDelimiters([prefix, suffix]: [string, string] = ["", ""]) {
     const [delimiterStart, delimiterEnd] = this.options.delimiters;
     return [delimiterStart + prefix, suffix + delimiterEnd];
@@ -334,14 +430,32 @@ export class Karacho {
     const [startDelimiter, endDelimiter] = this.#getDelimiters(
       this.options.partialDelimiters,
     );
+    const [prefix] = this.options.partialDelimiters;
     end = end + endDelimiter.length;
 
     const tag = template.slice(start, end);
     if (tag.startsWith(startDelimiter) && tag.endsWith(endDelimiter)) {
-      const key = tag.slice(startDelimiter.length, -endDelimiter.length).trim();
+      const content = tag.slice(startDelimiter.length, -endDelimiter.length);
+
+      // fill key with the first word of the content
+      const keyRE = /^(\w[\w\d\_]+)/;
+      const key = keyRE.exec(content)?.[1] ?? "";
       const depth = this.#depthMap.get(key) || 0;
       this.#depthMap.set(key, depth + 1);
-      return { type: "partial", key, tag, depth, start, end };
+      const node: ASTPartialNode = {
+        type: "partial",
+        key,
+        tag,
+        start,
+        end,
+        depth,
+      };
+      const addition = content.slice(key.length + prefix.length).trim();
+      if (addition) {
+        node.addition = addition;
+      }
+      this.#depthMap.set(key, depth + 1);
+      return node;
     }
   };
 
@@ -390,77 +504,4 @@ export class Karacho {
       return { type: "comment", key, tag, start, end };
     }
   };
-
-  execute(ast: ASTNode[], data: Record<string, unknown>) {
-    let result = "";
-    let i = 0;
-    while (i < ast.length) {
-      const node = ast[i];
-      if (typeof node === "string") {
-        result += node;
-      } else if (node.type === "variable") {
-        // value must be HTML escaped
-        result += (getValue(node.key, data) ?? "").toString()
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&#39;");
-      } else if (node.type === "raw") {
-        // value must be HTML escaped
-        result += getValue(node.key, data) ?? "";
-      } else if (node.type === "partial") {
-        // find a close tag to the partial
-        const endIndex = ast.slice(i + 1).findIndex((otherNode) =>
-          "string" !== typeof otherNode && otherNode.type === "close" &&
-          node.key === otherNode.key && node.depth === otherNode.depth
-        );
-        if (this.partials.has(node.key)) {
-          const partial = this.partials.get(node.key)!;
-          result += this.execute(partial, data);
-        } else {
-          // create an AST from the global AST inside the partial block without the end tag
-          const altAST = ast.slice(i + 1, endIndex + i + 1);
-          result += this.execute(altAST, data);
-          console.info(`Partial "${node.key}" not defined`);
-        }
-        if (endIndex > -1) {
-          i = endIndex + i + 1;
-          continue;
-        }
-      } else if (node.type === "helper") {
-        // find a close tag to the helper
-        const endIndex = ast.slice(i + 1).findIndex((otherNode) =>
-          "string" !== typeof otherNode && otherNode.type === "close" &&
-          node.key === otherNode.key && node.depth === otherNode.depth
-        );
-        // create an AST from the global AST inside the helper block without the end tag
-        const helperAST = ast.slice(i + 1, endIndex + i + 1);
-        if (this.helpers.has(node.key)) {
-          const helper = this.helpers.get(node.key)!;
-          result += helper.call(this, data, node, helperAST);
-          if (endIndex > -1) {
-            i = endIndex + i + 1;
-            continue;
-          }
-        } else {
-          console.warn(`Helper "${node.key}" not found`);
-        }
-      }
-      i++;
-    }
-
-    return result;
-  }
-
-  compile(template: string, options: Partial<KarachoOptions> = {}) {
-    if (options.partials) {
-      this.registerPartials(options.partials);
-    }
-    const ast = this.parse(template);
-    return (data: Record<string, unknown>) => {
-      const result = this.execute(ast, data);
-      return result;
-    };
-  }
 }
