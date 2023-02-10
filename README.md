@@ -1,8 +1,11 @@
 # KARACHO
 
+**Caracho! Another template engine!**
+
 It's small and it's fast!
 
-A template engine similar to mustache and handlebars, but slightly different.
+A template engine similar to mustache and handlebars. It's using an AST to
+execute the template. No generated code, no eval, no unsafe code.
 
 ## Usage
 
@@ -29,7 +32,10 @@ app.use(
 );
 
 app.use((ctx) => {
-  ctx.render("index.karacho", { title: "Oak Example", message: "Eat my shorts!" });
+  ctx.render("index.karacho", {
+    title: "Oak Example",
+    message: "Eat my shorts!",
+  });
 });
 
 await app.listen({ port: 8000 });
@@ -47,14 +53,16 @@ const karacho = new Karacho(options?: KarachoOptions);
 
 #### `options: InterpreterOptions`
 
-| Name                | Type           | Default        | Description                                    |
-| ------------------- | -------------- | -------------- | ---------------------------------------------- |
-| `delimiters`        | `Delimiters`   | `["{{", "}}"]` | Template Tag delimiters `{{variable}}`         |
-| `rawDelimiters`     | `Delimiters`   | `["{", "}"]`   | Raw Tag delimiters creates `{{{raw}}}`         |
-| `helperDelimiters`  | `Delimiters`   | `["#", ""]`    | Helper Tag delimiters creates `{{# helper}}`   |
-| `partialDelimiters` | `Delimiters`   | `[">", ""]`    | Partial Tag delimiters creates `{{> partial}}` |
-| `closeDelimiters`   | `Delimiters`   | `["/", ""]`    | Close Tag delimiters creates `{{/tag}}`        |
-| `partials`          | `PartialNodes` | void           | Adds partial views to the engine               |
+| Name                     | Type           | Default        | Description                                            |
+| ------------------------ | -------------- | -------------- | ------------------------------------------------------ |
+| `delimiters`             | `Delimiters`   | `["{{", "}}"]` | Template Tag delimiters `{{variable}}`                 |
+| `rawDelimiters`          | `Delimiters`   | `["{", "}"]`   | Raw Tag delimiters creates `{{{raw}}}`                 |
+| `helperDelimiters`       | `Delimiters`   | `["#", ""]`    | Helper Tag delimiters creates `{{# helper}}`           |
+| `partialDelimiters`      | `Delimiters`   | `[">", ""]`    | Partial Tag delimiters creates `{{> partial}}`         |
+| `closeDelimiters`        | `Delimiters`   | `["/", ""]`    | Close Tag delimiters creates `{{/tag}}`                |
+| `commentDelimiters`      | `Delimiters`   | `["!", ""]`    | Comment Tag delimiters creates `{{! comment}}`         |
+| `blockCommentDelimiters` | `Delimiters`   | `["!--", ""]`  | Block Comment Tag delimiters creates `{{! comment !}}` |
+| `partials`               | `PartialNodes` | void           | Adds partial views to the engine                       |
 
 #### `compile(template: string, options?: InterpreterOptions): (data: any) => string`
 
@@ -205,8 +213,7 @@ Partials can be used to include other templates.
 {{> partial}}
 ```
 
-It's also possible to use a block format to have alternative content in case the
-partial is not defined.
+Add content in a partial block:
 
 ```mustache
 {{>partial}}
@@ -214,7 +221,95 @@ some content
 {{/partial}}
 ```
 
-## Helpers
+The `{{$block}}` variable is a reserved variable for partial blocks. It will be
+replaced with the content of the partial block.
+
+```mustache
+partial before
+{{$block}}
+partial after
+```
+
+Partials can also take variables or values. Here the example partial helper:
+
+The partial view:
+
+```mustache
+{{params.greeting}}, {{name}}!
+```
+
+The template:
+
+```mustache
+{{>partial name, params = object}}
+```
+
+```typescript
+const result = template({
+  name: "World",
+  object: { greeting: "Hello" },
+});
+```
+
+This will create the output `Hello, World!`.
+
+### Comments
+
+Comments will be removed from the output.
+
+```mustache
+{{! comment }}
+```
+
+### Block Comments
+
+Block comments will be removed from the output.
+
+```mustache
+{{!-- comment --}}
+```
+
+## Built-in Helpers
+
+### `set`
+
+The `set` helper creates one or more variables. It will overwrite existing
+variables.
+
+```mustache
+{{#set name "John Doe" age 30}}
+My name is {{name}} and I'm {{age}} years old.
+```
+
+```typescript
+const result = template({ name: "James Bond", age: 40 });
+```
+
+Output
+
+```html
+My name is John Doe and I'm 30 years old.
+```
+
+### `default`
+
+The `default` helper sets the default value for a variable. It will not
+overwrite existing variables.
+
+```mustache
+{{#default name "John Doe" age 30}}
+My name is {{name}} and I'm {{age}} years old.
+```
+
+```typescript
+const result = template({ name: "James Bond", age: 40 });
+```
+
+Output
+
+```html
+My name is James Bond and I'm 40 years old.
+```
 
 ### `if` and `else`
 
@@ -244,6 +339,9 @@ const result = template({
   age: 30,
 });
 ```
+
+Available operators are `==`, `!=`, `>`, `<`, `>=`, `<=`, `and`, `or`, `not` and
+`xor`.
 
 ### `with` and `else`
 
@@ -275,10 +373,16 @@ The `each` helper iterates over the given array or object. The content inside
 the helper is rendered for each item in the array or object. If the array or
 object is empty, there can be an `{{else}}` helper to render content instead.
 
+There are some reserved variables in the context:
+
+- `{{$key}}` - the key of the current item
+- `{{$index}}` - the index of the current item
+- `{{$this}}` - the current item
+
 ```mustache
 <ul>
-{{#each items as item}}
-  <li>{{item}}</li>
+{{#each items}}
+  <li>{{$index}}: {{$key}} - {{$this}}</li>
 {{else}}
   <li>no items</li>
 {{/each}}
@@ -287,15 +391,29 @@ object is empty, there can be an `{{else}}` helper to render content instead.
 
 ```typescript
 const result = template({
-  items: ["apple", "banana", "orange"],
+  items: {
+    apple: "red",
+    banana: "yellow",
+    orange: "orange",
+  },
 });
 ```
 
-Add `key` and/or `index` to the context.
+If you define the `value`, `key` and/or `index` variables in the helper, then
+they will be used instead of the reserved variables.
+
+These are all valid:
+
+- `{{#each items}}` - `{{$this}}`, `{{$key}}` and `{{$index}}` are used
+- `{{#each item in items}}` - `{{item}}`, `{{$key}}` and `{{$index}}` are used
+- `{{#each item, key in items}}` - `{{item}}`, `{{key}}` and `{{$index}}` are
+  used
+- `{{#each item, key, index in items}}` - `{{item}}`, `{{key}}` and `{{index}}`
+  are used
 
 ```mustache
 <ul>
-{{#each items as item, key, index}}
+{{#each item, key, index in items}}
   <li>{{index}}: {{key}} - {{item}}</li>
 {{else}}
   <li>no items</li>
