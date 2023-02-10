@@ -216,7 +216,7 @@ export class Karacho {
       if (template.slice(start, end).startsWith(openDelimiter)) {
         // find end of block comment
         const closeDelimiter = blockCommentEnd + delimiterEnd;
-        end = template.indexOf(closeDelimiter);
+        end = start + template.slice(start).indexOf(closeDelimiter);
         if (end === -1) {
           break;
         }

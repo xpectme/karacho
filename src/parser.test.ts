@@ -516,20 +516,53 @@ Deno.test("create AST with block comment", () => {
   ]);
 });
 
-// Deno.test("create AST with escaped variable", () => {
-//   const interpreter = new Interpreter();
+Deno.test("create AST with multiple block comments", () => {
+  const interpreter = new Karacho();
+  const ast = interpreter.parse(
+    `Hello!{{!-- You have {{count}} new messages. --}}{{!-- You have {{count}} new messages. --}}`,
+  );
+  assertEquals(ast, [
+    "Hello!",
+    {
+      type: "comment",
+      end: 49,
+      start: 6,
+      tag: "{{!-- You have {{count}} new messages. --}}",
+      key: " You have {{count}} new messages. ",
+    },
+    {
+      type: "comment",
+      end: 92,
+      start: 49,
+      tag: "{{!-- You have {{count}} new messages. --}}",
+      key: " You have {{count}} new messages. ",
+    },
+  ]);
+});
+
+// Deno.test("parse template with quoted end delimiter", () => {
+//   const interpreter = new Karacho();
 //   const ast = interpreter.parse(
-//     "Hello \\{{name}}! You have {{count}} new messages.",
+//     "{{#custom '}}'}}hello, world!{{/custom}}",
 //   );
 //   assertEquals(ast, [
-//     "Hello {{name}}! You have ",
 //     {
-//       type: "variable",
-//       key: "count",
-//       tag: "{{count}}",
-//       start: 26,
-//       end: 35,
+//       type: "helper",
+//       key: "custom",
+//       tag: "{{#custom '}}'}}",
+//       depth: 0,
+//       start: 0,
+//       end: 18,
+//       addition: "'}}'",
 //     },
-//     " new messages.",
+//     "hello, world!",
+//     {
+//       type: "close",
+//       key: "custom",
+//       tag: "{{/custom}}",
+//       depth: 0,
+//       start: 31,
+//       end: 43,
+//     },
 //   ]);
 // });
