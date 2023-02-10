@@ -61,7 +61,7 @@ const karacho = new Karacho(options?: KarachoOptions);
 | `partialDelimiters`      | `Delimiters`   | `[">", ""]`    | Partial Tag delimiters creates `{{> partial}}`         |
 | `closeDelimiters`        | `Delimiters`   | `["/", ""]`    | Close Tag delimiters creates `{{/tag}}`                |
 | `commentDelimiters`      | `Delimiters`   | `["!", ""]`    | Comment Tag delimiters creates `{{! comment}}`         |
-| `blockCommentDelimiters` | `Delimiters`   | `["!--", ""]`  | Block Comment Tag delimiters creates `{{! comment !}}` |
+| `blockCommentDelimiters` | `Delimiters`   | `["!--", ""]`  | Block Comment Tag delimiters creates `{{!-- comment --}}` |
 | `partials`               | `PartialNodes` | void           | Adds partial views to the engine                       |
 
 #### `compile(template: string, options?: InterpreterOptions): (data: any) => string`
