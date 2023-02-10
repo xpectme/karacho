@@ -232,9 +232,9 @@ Deno.test("execute eachHelper with else case", () => {
 
 Deno.test("execute setHelper", () => {
   const interpreter = new Karacho();
-  const template = interpreter.compile("{{#set name = World}}Hello {{name}}");
+  const template = interpreter.compile("{{#set name = 'World'}}Hello {{name}}");
 
-  const result = template({});
+  const result = template();
   assertEquals(result, "Hello World");
 });
 
@@ -270,4 +270,70 @@ Deno.test("create navbar with loopHelper and ifHelper", () => {
     result,
     `<b>Home</b><a href="/about">About</a>`,
   );
+});
+
+Deno.test("create a default helper and set a variable", () => {
+  const interpreter = new Karacho();
+  const template = interpreter.compile(
+    "{{#default name = 'World'}}Hello {{name}}",
+  );
+
+  const result = template({});
+  assertEquals(result, "Hello World");
+});
+
+Deno.test("create a default helper that handles an existing variable", () => {
+  const interpreter = new Karacho();
+  const template = interpreter.compile(
+    "{{#default name = 'World'}}Hello {{name}}",
+  );
+
+  const result = template({ name: "Deno" });
+  assertEquals(result, "Hello Deno");
+});
+
+Deno.test("create a default helper that handles non-existing multiple variables", () => {
+  const interpreter = new Karacho();
+  const template = interpreter.compile(
+    "{{#default name = 'Bruce Wayne', age = 35}}{{name}} is {{age}} years old",
+  );
+
+  const result = template();
+  assertEquals(result, "Bruce Wayne is 35 years old");
+});
+
+Deno.test("create a default helper that handles multiple variables", () => {
+  const interpreter = new Karacho();
+  const template = interpreter.compile(
+    "{{#default name = 'Bruce Wayne', age = 35}}{{name}} is {{age}} years old",
+  );
+
+  const result = template({ name: "Jim Gordon", age: 77 });
+  assertEquals(result, "Jim Gordon is 77 years old");
+});
+
+Deno.test("create default helper with newline definition", () => {
+  const interpreter = new Karacho();
+  const template = interpreter.compile(
+    `{{#default
+        firstName = 'Bruce',
+        lastName = 'Wayne',
+        age = 35
+     }}
+     {{firstName}} {{lastName}} is {{age}} years old`,
+  );
+
+  const result = template();
+  assertEquals(result.trim(), "Bruce Wayne is 35 years old");
+});
+
+Deno.test("create default helper with newline definition and partly predefined", () => {
+  const interpreter = new Karacho();
+  const template = interpreter.compile(
+    `{{#default lastName = 'Wayne'}}
+     {{firstName}} {{lastName}} is {{age}} years old`,
+  );
+
+  const result = template({ firstName: "Bruce", age: 35 });
+  assertEquals(result.trim(), "Bruce Wayne is 35 years old");
 });

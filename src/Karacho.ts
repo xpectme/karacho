@@ -1,5 +1,5 @@
 import * as builtin from "./BuiltInHelpers.ts";
-import { getValue, reservedWord, setValue } from "./Utils.ts";
+import { formatHTML, getValue, reservedWord, setValue } from "./Utils.ts";
 
 export type ASTTextNode = string;
 
@@ -110,6 +110,7 @@ export class Karacho {
     ["each", builtin.eachHelper],
     ["with", builtin.withHelper],
     ["set", builtin.setHelper],
+    ["default", builtin.defaultHelper],
   ]);
   readonly tags = new Set<ASTTagHandler>();
 
@@ -263,12 +264,7 @@ export class Karacho {
         result += node;
       } else if (node.type === "variable") {
         // value must be HTML escaped
-        result += (getValue(node.key, data) ?? "").toString()
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&#39;");
+        result += formatHTML(getValue(node.key, data));
       } else if (node.type === "raw") {
         // value must be HTML escaped
         result += getValue(node.key, data) ?? "";

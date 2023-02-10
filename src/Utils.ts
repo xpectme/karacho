@@ -14,6 +14,14 @@ const compareRE = new RegExp(
 );
 const quoteRE = /^('([^']+)'|"([^"]+)")$/;
 
+export const formatHTML = (html: unknown) =>
+  (html || "").toString()
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 export function getValue(
   path: string,
   data: Record<string, unknown>,
@@ -50,9 +58,15 @@ export function getValue(
   return value;
 }
 
+export interface SetValueOptions {
+  overwrite?: boolean;
+  mutate?: boolean;
+}
+
 export function setValue(
   data: Record<string, unknown>,
   rawArgs: string | undefined,
+  options: SetValueOptions = { overwrite: true, mutate: false },
 ) {
   if (rawArgs === undefined || rawArgs === "") {
     return data;
@@ -67,7 +81,7 @@ export function setValue(
     kv.set(key, getValue(value, data));
   }
 
-  const result = { ...data };
+  const result = options.mutate ? data : { ...data };
   for (const [key, value] of kv) {
     const keys = key.match(/(\w[\w\d_]*|\d+)+/g);
     if (keys === null) {
@@ -82,7 +96,10 @@ export function setValue(
       obj = obj[keys[i]] as Record<string, unknown>;
     }
 
-    obj[keys[keys.length - 1]] = value;
+    const lastKey = keys[keys.length - 1];
+    if (options.overwrite || obj[lastKey] === undefined) {
+      obj[lastKey] = value;
+    }
   }
 
   return result;
@@ -143,59 +160,6 @@ export function reservedWord(
 
   return undefined;
 }
-
-// export function getElseIndex(subAst: ASTNode[]) {
-//   let endLeft = subAst.length;
-//   for (let i = 0; i < subAst.length; i++) {
-//     const node = subAst[i];
-//     if (
-//       "string" !== typeof node &&
-//       (node.type === "helper" || node.type === "partial")
-//     ) {
-//       endLeft = i;
-//       break;
-//     }
-//   }
-
-//   let startRight = 0;
-//   for (let i = subAst.length - 1; i >= 0; i--) {
-//     const node = subAst[i];
-//     if (
-//       "string" !== typeof node &&
-//       (node.type === "close" || node.type === "helper" ||
-//         node.type === "partial")
-//     ) {
-//       startRight = i + 1;
-//       break;
-//     }
-//   }
-
-//   // iterate over the subAst and find the else case between 0 and endLeft
-//   for (let i = 0; i < endLeft; i++) {
-//     const node = subAst[i];
-//     if (
-//       "string" !== typeof node &&
-//       node.type === "variable" &&
-//       node.key === "else"
-//     ) {
-//       return i;
-//     }
-//   }
-
-//   // iterate over the subAst and find the else case between startRight and subAst.length
-//   for (let i = startRight; i < subAst.length; i++) {
-//     const node = subAst[i];
-//     if (
-//       "string" !== typeof node &&
-//       node.type === "variable" &&
-//       node.key === "else"
-//     ) {
-//       return i;
-//     }
-//   }
-
-//   return undefined;
-// }
 
 export function is(
   op: string,

@@ -120,10 +120,10 @@ export function eachHelper(
   for (const [key, value] of map) {
     const newData = { ...data, [itemName]: value };
     if (keyName === indexName) {
-      newData[indexName] = index;
+      newData[indexName] = index.toString();
     } else {
-      newData[keyName] = key;
-      newData[indexName] = index;
+      newData[keyName] = key.toString();
+      newData[indexName] = index.toString();
     }
 
     result += this.execute(eachSubAst, newData);
@@ -137,18 +137,22 @@ export function setHelper(
   data: Record<string, unknown>,
   node: ASTHelperNode,
 ) {
-  if (!node.addition) {
-    return "";
-  }
+  setValue(data, node.addition, { overwrite: true, mutate: true });
+  return "";
+}
 
-  setValue(data, node.addition);
-
-  // parse the addition string
-  const [, key, value] = node.addition.match(/(\w[\w\d_]+)\s*=\s*(.*)/)!;
-
-  // set the value
-  data[key] = value;
-
+/**
+ * Set the value of a key if it is not already set
+ * @param data
+ * @param node
+ * @returns
+ */
+export function defaultHelper(
+  data: Record<string, unknown>,
+  node: ASTHelperNode,
+) {
+  // if the key is already set then the value is not set
+  setValue(data, node.addition, { overwrite: false, mutate: true });
   return "";
 }
 
