@@ -1,11 +1,10 @@
 # KARACHO
 
-**Caracho! Another template engine!**
+**Blazing away at full speed!**
 
-It's small and it's fast!
-
-A template engine similar to mustache and handlebars. It's using an AST to
-execute the template. No generated code, no eval, no unsafe code.
+Small and fast template engine similar to mustache and handlebars.
+It's using an AST to execute the template. No generated code,
+no eval, no unsafe code.
 
 ## Usage
 
