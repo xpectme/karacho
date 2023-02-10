@@ -226,47 +226,6 @@ export function is(
   return Boolean(value);
 }
 
-export function parseBaseTemplate() {
-  let input =
-    "This is a {{template \"with a \\\"quoted\\\" string\"}}. And this is another {{template 'with a \\'quoted\\' string'}}. And this is a {{template \"mixed \\'quoted\\' string\"}}.";
-  let startIndex = 0;
-
-  while (startIndex < input.length) {
-    let openIndex = input.indexOf("{{", startIndex);
-
-    if (openIndex === -1) {
-      break;
-    }
-
-    let closeIndex = input.indexOf("}}", openIndex);
-    let quoteStartIndex = input.indexOf('"', openIndex);
-    let singleQuoteStartIndex = input.indexOf("'", openIndex);
-
-    if (quoteStartIndex !== -1 && quoteStartIndex < closeIndex) {
-      let quoteEndIndex = input.indexOf('"', quoteStartIndex + 1);
-      while (input[quoteEndIndex - 1] === "\\") {
-        quoteEndIndex = input.indexOf('"', quoteEndIndex + 1);
-      }
-
-      startIndex = quoteEndIndex + 1;
-      continue;
-    } else if (
-      singleQuoteStartIndex !== -1 && singleQuoteStartIndex < closeIndex
-    ) {
-      let singleQuoteEndIndex = input.indexOf("'", singleQuoteStartIndex + 1);
-      while (input[singleQuoteEndIndex - 1] === "\\") {
-        singleQuoteEndIndex = input.indexOf("'", singleQuoteEndIndex + 1);
-      }
-
-      startIndex = singleQuoteEndIndex + 1;
-      continue;
-    }
-
-    console.log(input.substring(openIndex + 2, closeIndex));
-    startIndex = closeIndex + 2;
-  }
-}
-
 export class ASTError extends Error {
   constructor(error: Error | string, public node: ASTNode) {
     super(error instanceof Error ? error.message : error);
