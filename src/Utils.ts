@@ -37,7 +37,7 @@ export function getValue(
   }
 
   // keys can indicate properties of an object
-  const keys = path.match(/(\w[\w\d_]*|\d+)+/g);
+  const keys = path.match(/(\$?\w[\w\d_]*|\d+)+/g);
 
   if (keys === null) {
     return "";
@@ -61,12 +61,17 @@ export function getValue(
 export interface SetValueOptions {
   overwrite?: boolean;
   mutate?: boolean;
+  reserved?: boolean;
 }
 
 export function setValue(
   data: Record<string, unknown>,
   rawArgs: string | undefined,
-  options: SetValueOptions = { overwrite: true, mutate: false },
+  options: SetValueOptions = {
+    overwrite: true,
+    mutate: false,
+    reserved: false,
+  },
 ) {
   if (rawArgs === undefined || rawArgs === "") {
     return data;
@@ -82,8 +87,13 @@ export function setValue(
   }
 
   const result = options.mutate ? data : { ...data };
+
+  const keyRegex = options.reserved
+    ? /(\$?\w[\w\d_]*|\d+)+/g
+    : /(\w[\w\d_]*|\d+)+/g;
+
   for (const [key, value] of kv) {
-    const keys = key.match(/(\w[\w\d_]*|\d+)+/g);
+    const keys = key.match(keyRegex);
     if (keys === null) {
       continue;
     }
@@ -214,6 +224,47 @@ export function is(
 
   const value = getValue(leftKey, data);
   return Boolean(value);
+}
+
+export function parseBaseTemplate() {
+  let input =
+    "This is a {{template \"with a \\\"quoted\\\" string\"}}. And this is another {{template 'with a \\'quoted\\' string'}}. And this is a {{template \"mixed \\'quoted\\' string\"}}.";
+  let startIndex = 0;
+
+  while (startIndex < input.length) {
+    let openIndex = input.indexOf("{{", startIndex);
+
+    if (openIndex === -1) {
+      break;
+    }
+
+    let closeIndex = input.indexOf("}}", openIndex);
+    let quoteStartIndex = input.indexOf('"', openIndex);
+    let singleQuoteStartIndex = input.indexOf("'", openIndex);
+
+    if (quoteStartIndex !== -1 && quoteStartIndex < closeIndex) {
+      let quoteEndIndex = input.indexOf('"', quoteStartIndex + 1);
+      while (input[quoteEndIndex - 1] === "\\") {
+        quoteEndIndex = input.indexOf('"', quoteEndIndex + 1);
+      }
+
+      startIndex = quoteEndIndex + 1;
+      continue;
+    } else if (
+      singleQuoteStartIndex !== -1 && singleQuoteStartIndex < closeIndex
+    ) {
+      let singleQuoteEndIndex = input.indexOf("'", singleQuoteStartIndex + 1);
+      while (input[singleQuoteEndIndex - 1] === "\\") {
+        singleQuoteEndIndex = input.indexOf("'", singleQuoteEndIndex + 1);
+      }
+
+      startIndex = singleQuoteEndIndex + 1;
+      continue;
+    }
+
+    console.log(input.substring(openIndex + 2, closeIndex));
+    startIndex = closeIndex + 2;
+  }
 }
 
 export class ASTError extends Error {

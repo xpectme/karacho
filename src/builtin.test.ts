@@ -1,5 +1,6 @@
-import { assertEquals } from "https://deno.land/std@0.152.0/testing/asserts.ts";
-import { Karacho } from "./Karacho.ts";
+import { assertEquals } from "https://deno.land/std@0.177.0/testing/asserts.ts";
+import { eachHelper } from "./BuiltInHelpers.ts";
+import { ASTHelperNode, ASTVariableNode, Karacho } from "./Karacho.ts";
 
 Deno.test("execute ifHelper", () => {
   const interpreter = new Karacho();
@@ -161,10 +162,91 @@ Deno.test("execute ifHelper block with navbar", () => {
   );
 });
 
+const createVarNode = (key: string): ASTVariableNode => ({
+  type: "variable",
+  end: 0,
+  start: 0,
+  key,
+  tag: `{{${key}}}`,
+});
+const createHelperNode = (rawArgs: string): ASTHelperNode => ({
+  type: "helper",
+  end: 0,
+  start: 0,
+  key: "each",
+  tag: `{{#each ${rawArgs}}}`,
+  addition: rawArgs,
+  depth: 0,
+});
+
+Deno.test("execute {{#each value, key, index in items}}", () => {
+  const interpreter = new Karacho();
+  const result = eachHelper.call(
+    interpreter,
+    { items: ["a", "b", "c"] },
+    createHelperNode("value, key, index in items"),
+    [
+      createVarNode("value"),
+      createVarNode("key"),
+      createVarNode("index"),
+    ],
+  );
+
+  assertEquals(result, "a00b11c22");
+});
+
+Deno.test("execute {{#each value, key in items}}", () => {
+  const interpreter = new Karacho();
+  const result = eachHelper.call(
+    interpreter,
+    { items: ["a", "b", "c"] },
+    createHelperNode("value, key in items"),
+    [
+      createVarNode("value"),
+      createVarNode("key"),
+      createVarNode("$index"),
+    ],
+  );
+
+  assertEquals(result, "a00b11c22");
+});
+
+Deno.test("execute {{#each value in items}}", () => {
+  const interpreter = new Karacho();
+  const result = eachHelper.call(
+    interpreter,
+    { items: ["a", "b", "c"] },
+    createHelperNode("value in items"),
+    [
+      createVarNode("value"),
+      createVarNode("$key"),
+      createVarNode("$index"),
+    ],
+  );
+
+  assertEquals(result, "a00b11c22");
+});
+
+Deno.test("execute {{#each items}}", () => {
+  const interpreter = new Karacho();
+  const result = eachHelper.call(
+    interpreter,
+    { items: ["a", "b", "c"] },
+    createHelperNode("items"),
+    [
+      createVarNode("$this"),
+      createVarNode("$key"),
+      createVarNode("$index"),
+    ],
+  );
+
+  assertEquals(result, "a00b11c22");
+});
+
 Deno.test("execute eachHelper", () => {
   const interpreter = new Karacho();
   const template = interpreter.compile(
-    "{{#each items as item}}{{item}}{{/each}}",
+    "{{#each item in items}}{{item}}{{/each}}",
   );
 
   const result = template({ items: ["a", "b", "c"] });
@@ -177,7 +259,7 @@ Deno.test("execute eachHelper", () => {
 Deno.test("execute eachHelper with index", () => {
   const interpreter = new Karacho();
   const template = interpreter.compile(
-    "{{#each items as item, index}}{{index}}{{/each}}",
+    "{{#each item, index in items}}{{index}}{{/each}}",
   );
 
   const result = template({ items: ["a", "b", "c"] });
@@ -190,7 +272,7 @@ Deno.test("execute eachHelper with index", () => {
 Deno.test("execute eachHelper with key", () => {
   const interpreter = new Karacho();
   const template = interpreter.compile(
-    "{{#each items as item, key}}{{key}}{{/each}}",
+    "{{#each item, key in items}}{{key}}{{/each}}",
   );
 
   const result = template({ items: { a: "a", b: "b", c: "c" } });
@@ -200,7 +282,7 @@ Deno.test("execute eachHelper with key", () => {
 Deno.test("execute eachHelper with index and key", () => {
   const interpreter = new Karacho();
   const template = interpreter.compile(
-    "{{#each items as value, key}}{{key}}{{value}}{{/each}}",
+    "{{#each value, key in items}}{{key}}{{value}}{{/each}}",
   );
 
   const result = template({ items: { a: 1, b: 2, c: 3 } });
@@ -210,7 +292,7 @@ Deno.test("execute eachHelper with index and key", () => {
 Deno.test("execute eachHelper with index and key", () => {
   const interpreter = new Karacho();
   const template = interpreter.compile(
-    "{{#each items as value, key, index}}{{key}}{{index}}{{/each}}",
+    "{{#each value, key, index in items}}{{key}}{{index}}{{/each}}",
   );
 
   const result = template({ items: { a: 1, b: 2, c: 3 } });
@@ -220,7 +302,7 @@ Deno.test("execute eachHelper with index and key", () => {
 Deno.test("execute eachHelper with else case", () => {
   const interpreter = new Karacho();
   const template = interpreter.compile(
-    "{{#each items as item}}{{item}}{{else}}No items{{/each}}",
+    "{{#each item in items}}{{item}}{{else}}No items{{/each}}",
   );
 
   const result = template({ items: ["a", "b", "c"] });
@@ -256,7 +338,7 @@ Deno.test("execute withHelper with context", () => {
 Deno.test("create navbar with loopHelper and ifHelper", () => {
   const interpreter = new Karacho();
   const template = interpreter.compile(
-    `{{#each items as item}}{{#if item.path == selectedPath}}<b>{{item.title}}</b>{{else}}<a href="{{item.path}}">{{item.title}}</a>{{/if}}{{/each}}`,
+    `{{#each item in items}}{{#if item.path == selectedPath}}<b>{{item.title}}</b>{{else}}<a href="{{item.path}}">{{item.title}}</a>{{/if}}{{/each}}`,
   );
 
   const result = template({

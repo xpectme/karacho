@@ -1,4 +1,5 @@
 import { ASTHelperNode, ASTNode, Karacho } from "./Karacho.ts";
+import { eachLoop } from "./regex.ts";
 import { ASTError, getValue, is, reservedWord, setValue } from "./Utils.ts";
 
 const opsRE = /\s+(and|x?or)\s+/;
@@ -80,10 +81,13 @@ export function eachHelper(
   const debug = this.options.debug;
 
   // parse the addition string and extract listName, itemName, keyName, indexName
-  const [listName, rest] = node.addition.split(/\s+as\s+/);
-  const [itemName = "this", keyName = "key", indexName = "index"] = rest.split(
-    /\s*,\s*/,
-  );
+  let [, valueName, keyName, indexName, listName] =
+    node.addition.match(eachLoop) ?? [];
+  listName = listName ?? node.addition.match(/^\w+$/)?.[0] ?? undefined;
+
+  if (!listName) {
+    throw new ASTError("Invalid each statement", node);
+  }
 
   const object = getValue(listName, data, debug);
   if (!object) {
@@ -118,13 +122,24 @@ export function eachHelper(
   let result = "";
   let index = 0;
   for (const [key, value] of map) {
-    const newData = { ...data, [itemName]: value };
-    if (keyName === indexName) {
-      newData[indexName] = index.toString();
+    let newData: Record<string, unknown> = {};
+
+    if (!valueName) {
+      if (typeof value === "object") {
+        newData = { ...data, ...value };
+      } else {
+        newData = { ...data, ["$this"]: value };
+      }
     } else {
-      newData[keyName] = key.toString();
-      newData[indexName] = index.toString();
+      newData = { ...data, [valueName]: value };
     }
+
+    if (!keyName && indexName) {
+      keyName = indexName;
+    }
+
+    newData[keyName ?? "$key"] = key.toString();
+    newData[indexName ?? "$index"] = index.toString();
 
     result += this.execute(eachSubAst, newData);
     index++;

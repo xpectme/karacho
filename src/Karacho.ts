@@ -108,6 +108,7 @@ export class Karacho {
   readonly helpers = new Map<string, InternalHelper>([
     ["if", builtin.ifHelper],
     ["each", builtin.eachHelper],
+    ["for", builtin.eachHelper],
     ["with", builtin.withHelper],
     ["set", builtin.setHelper],
     ["default", builtin.defaultHelper],
