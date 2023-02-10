@@ -194,7 +194,7 @@ karacho.registerHelper("hello", (greeting, name) => {
 This is how you implement it into the template:
 
 ```mustache
-{{#hello greeting "World"}}
+{{#hello greeting, "World"}}
 ```
 
 ```typescript
