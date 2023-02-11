@@ -37,7 +37,7 @@ export function getValue(
   }
 
   // keys can indicate properties of an object
-  const keys = path.match(/(\$?\w[\w\d_]*|\d+)+/g);
+  const keys = path?.match(/(\$?\w[\w\d_]*|\d+)+/g) ?? null;
 
   if (keys === null) {
     return "";
