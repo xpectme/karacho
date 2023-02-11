@@ -1,7 +1,7 @@
 import type {
   Engine,
 } from "https://deno.land/x/view_engine@v10.6.0/lib/viewEngine.type.ts";
-import { basename } from "https://deno.land/std@0.151.0/path/mod.ts";
+import { basename } from "https://deno.land/std@0.177.0/path/mod.ts";
 import { Karacho } from "./Karacho.ts";
 
 export interface KarachoEngineConfig {
@@ -51,6 +51,7 @@ export function karachoEngine(
 
   return async (
     template: string,
+    // deno-lint-ignore ban-types
     data: object = {},
   ) => {
     const options = { ...globalConfig, ...localConfig };

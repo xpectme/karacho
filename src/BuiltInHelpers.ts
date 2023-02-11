@@ -149,10 +149,20 @@ export function eachHelper(
 }
 
 export function setHelper(
+  this: Karacho,
   data: Record<string, unknown>,
   node: ASTHelperNode,
+  subAst: ASTNode[],
 ) {
-  setValue(data, node.addition, { overwrite: true, mutate: true });
+  const hasSubAst = subAst.length > 0;
+
+  // If this is no set block, then the data object will be mutated
+  data = setValue(data, node.addition, { overwrite: true, mutate: !hasSubAst });
+
+  // Otherwise the data object will not be mutated and only affect the subAst
+  if (hasSubAst) {
+    return this.execute(subAst, data);
+  }
   return "";
 }
 
@@ -163,11 +173,23 @@ export function setHelper(
  * @returns
  */
 export function defaultHelper(
+  this: Karacho,
   data: Record<string, unknown>,
   node: ASTHelperNode,
+  subAst: ASTNode[],
 ) {
-  // if the key is already set then the value is not set
-  setValue(data, node.addition, { overwrite: false, mutate: true });
+  const hasSubAst = subAst.length > 0;
+
+  // If this is no set block, then the data object will be mutated
+  data = setValue(data, node.addition, {
+    overwrite: false,
+    mutate: !hasSubAst,
+  });
+
+  // Otherwise the data object will not be mutated and only affect the subAst
+  if (hasSubAst) {
+    return this.execute(subAst, data);
+  }
   return "";
 }
 

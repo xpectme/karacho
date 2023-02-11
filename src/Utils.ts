@@ -93,7 +93,7 @@ export function setValue(
     : /(\w[\w\d_]*|\d+)+/g;
 
   for (const [key, value] of kv) {
-    const keys = key.match(keyRegex);
+    const keys = key?.match(keyRegex) ?? null;
     if (keys === null) {
       continue;
     }
