@@ -312,6 +312,38 @@ Deno.test("execute eachHelper with else case", () => {
   assertEquals(result2, "No items");
 });
 
+Deno.test("execute array nested in container {{#each item in container.items}}", () => {
+  const interpreter = new Karacho();
+  const template = interpreter.compile(
+    "{{#each item in container.items}}{{item}}{{/each}}",
+  );
+
+  const result = template({
+    container: {
+      items: ["a", "b", "c"],
+    },
+  });
+  assertEquals(result, "abc");
+});
+
+Deno.test("execute array nested in multiple containers {{#each item in a.b.c.items}}", () => {
+  const interpreter = new Karacho();
+  const template = interpreter.compile(
+    "{{#each item in a.b.c.items}}{{item}}{{/each}}",
+  );
+
+  const result = template({
+    a: {
+      b: {
+        c: {
+          items: ["a", "b", "c"],
+        },
+      },
+    },
+  });
+  assertEquals(result, "abc");
+});
+
 Deno.test("execute setHelper", () => {
   const interpreter = new Karacho();
   const template = interpreter.compile("{{#set name = 'World'}}Hello {{name}}");

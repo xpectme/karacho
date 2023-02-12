@@ -1,1 +1,2 @@
-export const eachLoop = /^(\w+)?(?:,\s*(\w+))?(?:,\s*(\w+))?\s+in\s+(\w+)$/;
+export const eachLoop =
+  /^(\w+)(?:,\s*(\w+))?(?:,\s*(\w+))?\s+in\s+(\w+(?:\.\w+)*)$/;
